@@ -37,7 +37,16 @@ function Slider({
             <SliderPrimitive.Thumb
               key={index}
               index={index}
-              aria-label={index === 0 ? "Minimum" : "Maximum"}
+              aria-label={
+                values.length === 1 && props["aria-label"]
+                  ? props["aria-label"]
+                  : index === 0
+                    ? "Minimum"
+                    : "Maximum"
+              }
+              aria-labelledby={
+                values.length === 1 ? props["aria-labelledby"] : undefined
+              }
               className="block size-4.5 cursor-grab rounded-full border-2 border-primary bg-card shadow-sm transition-shadow select-none hover:ring-4 hover:ring-primary/20 active:cursor-grabbing has-focus-visible:ring-4 has-focus-visible:ring-ring/40"
             />
           ))}

@@ -8,6 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DesktopNav } from "./desktop-nav";
 import { MobileNav } from "./mobile-nav";
+import { NavbarAuth } from "./navbar-auth";
 
 export function Navbar() {
   return (
@@ -24,6 +25,7 @@ export function Navbar() {
         <DesktopNav />
 
         <div className="flex items-center gap-2">
+          <NavbarAuth />
           <div className="hidden items-center gap-1 md:flex">
             <ThemeToggle />
           </div>

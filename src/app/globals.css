@@ -29,6 +29,12 @@
   --color-destructive: var(--destructive);
   --color-trace: var(--trace);
   --color-trace-foreground: var(--trace-foreground);
+  --color-studio-surface: var(--studio-surface);
+  --color-studio-panel: var(--studio-panel);
+  --color-studio-foreground: var(--studio-foreground);
+  --color-studio-muted: var(--studio-muted);
+  --color-studio-border: var(--studio-border);
+  --color-studio-grid: var(--studio-grid);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -65,8 +71,14 @@
   --muted-foreground: oklch(0.46 0.012 260);
   --accent: oklch(0.94 0.018 260);
   --accent-foreground: oklch(0.24 0.03 264);
-  --trace: oklch(0.7 0.15 205);
-  --trace-foreground: oklch(0.99 0 0);
+  --trace: #00ffff;
+  --trace-foreground: oklch(0.16 0.03 200);
+  --studio-surface: oklch(0.145 0.015 260);
+  --studio-panel: oklch(0.185 0.018 260);
+  --studio-foreground: oklch(0.95 0.008 255);
+  --studio-muted: oklch(0.68 0.015 255);
+  --studio-border: oklch(0.28 0.02 260);
+  --studio-grid: oklch(0.24 0.02 255);
   --destructive: oklch(0.577 0.21 27.5);
   --border: oklch(0.91 0.006 255);
   --input: oklch(0.91 0.006 255);
@@ -102,8 +114,14 @@
   --muted-foreground: oklch(0.7 0.01 255);
   --accent: oklch(0.25 0.025 264);
   --accent-foreground: oklch(0.94 0.015 255);
-  --trace: oklch(0.78 0.15 200);
+  --trace: #00ffff;
   --trace-foreground: oklch(0.14 0.02 200);
+  --studio-surface: oklch(0.125 0.014 260);
+  --studio-panel: oklch(0.165 0.016 260);
+  --studio-foreground: oklch(0.96 0.008 255);
+  --studio-muted: oklch(0.68 0.015 255);
+  --studio-border: oklch(0.27 0.02 260);
+  --studio-grid: oklch(0.22 0.02 255);
   --destructive: oklch(0.704 0.17 22.5);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 14%);
@@ -148,5 +166,65 @@
 
   *::-webkit-scrollbar-thumb:hover {
     background: color-mix(in oklch, var(--muted-foreground), transparent 20%);
+  }
+}
+
+@layer utilities {
+  .vk-blueprint-grid {
+    background-color: var(--studio-surface);
+    background-image:
+      linear-gradient(to right, color-mix(in oklch, var(--studio-grid), transparent 45%) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklch, var(--studio-grid), transparent 45%) 1px, transparent 1px),
+      linear-gradient(to right, color-mix(in oklch, var(--primary), transparent 85%) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklch, var(--primary), transparent 85%) 1px, transparent 1px);
+    background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
+  }
+
+  .vk-checkerboard {
+    background-color: var(--studio-surface);
+    background-image:
+      linear-gradient(45deg, var(--studio-grid) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--studio-grid) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--studio-grid) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--studio-grid) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+  }
+
+  .vk-crisp-image {
+    image-rendering: pixelated;
+  }
+
+  .vk-loupe-ring {
+    box-shadow:
+      0 0 0 2px var(--trace),
+      0 0 22px 2px color-mix(in oklch, var(--trace), transparent 45%);
+  }
+
+  .vk-wireframe-svg svg,
+  .vk-wireframe-svg path,
+  .vk-wireframe-svg circle,
+  .vk-wireframe-svg rect,
+  .vk-wireframe-svg polygon,
+  .vk-wireframe-svg polyline {
+    fill: none !important;
+    stroke: var(--trace) !important;
+    stroke-width: 1px !important;
+    vector-effect: non-scaling-stroke !important;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .vk-wireframe-svg svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .vk-full-svg svg {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 }
