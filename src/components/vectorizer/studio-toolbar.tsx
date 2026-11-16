@@ -29,50 +29,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
-import type { ExportFormat } from "@/lib/vectorizer-api";
-import type { ViewMode } from "./types";
+import { useVectorStudio } from "./vector-studio-context";
 
-interface StudioToolbarProps {
-  originalName: string;
-  dimensions: { width: number; height: number };
-  scale: number;
-  sliderValue: number;
-  viewMode: ViewMode;
-  loupeEnabled: boolean;
-  fullWireframe: boolean;
-  isDownloading: boolean;
-  onReset: () => void;
-  onViewModeChange: (mode: ViewMode) => void;
-  onToggleLoupe: () => void;
-  onToggleWireframe: () => void;
-  onZoomOut: () => void;
-  onZoomIn: () => void;
-  onSliderZoom: (val: number | readonly number[]) => void;
-  onZoomFit: () => void;
-  onZoom1To1: () => void;
-  onExport: (format: ExportFormat, scale?: 1 | 2 | 4) => void;
-}
+export function StudioToolbar() {
+  const {
+    job,
+    preview,
+    camera,
+    sliderValue,
+    viewMode,
+    loupeEnabled,
+    fullWireframe,
+    isDownloading,
+    resetStudio,
+    setViewMode,
+    setLoupeEnabled,
+    setFullWireframe,
+    zoomBy,
+    handleSliderZoom,
+    zoomToFit,
+    zoom1To1,
+    handleExport,
+  } = useVectorStudio();
 
-export function StudioToolbar({
-  originalName,
-  dimensions,
-  scale,
-  sliderValue,
-  viewMode,
-  loupeEnabled,
-  fullWireframe,
-  isDownloading,
-  onReset,
-  onViewModeChange,
-  onToggleLoupe,
-  onToggleWireframe,
-  onZoomOut,
-  onZoomIn,
-  onSliderZoom,
-  onZoomFit,
-  onZoom1To1,
-  onExport,
-}: StudioToolbarProps) {
+  if (!job || !preview) return null;
+
   return (
     <div
       role="toolbar"
@@ -80,22 +61,26 @@ export function StudioToolbar({
       className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-studio-border bg-studio-panel px-4 py-3 text-studio-foreground shadow-sm"
     >
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" size="default" onClick={onReset}>
+        <Button variant="outline" size="default" onClick={resetStudio}>
           <Plus className="size-4" />
           New Image
         </Button>
 
         <Badge variant="secondary" className="max-w-48 truncate">
-          {originalName}
+          {job.originalName}
         </Badge>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Comparison view modes">
+      <div
+        className="flex flex-wrap items-center gap-1.5"
+        role="group"
+        aria-label="Comparison view modes"
+      >
         <Button
           variant={viewMode === "split" ? "default" : "ghost"}
           size="default"
           aria-pressed={viewMode === "split"}
-          onClick={() => onViewModeChange("split")}
+          onClick={() => setViewMode("split")}
         >
           <Columns2 className="size-4" />
           Side-by-Side
@@ -104,7 +89,7 @@ export function StudioToolbar({
           variant={viewMode === "curtain" ? "default" : "ghost"}
           size="default"
           aria-pressed={viewMode === "curtain"}
-          onClick={() => onViewModeChange("curtain")}
+          onClick={() => setViewMode("curtain")}
         >
           <Sliders className="size-4" />
           Curtain
@@ -113,7 +98,7 @@ export function StudioToolbar({
           variant={viewMode === "single" ? "default" : "ghost"}
           size="default"
           aria-pressed={viewMode === "single"}
-          onClick={() => onViewModeChange("single")}
+          onClick={() => setViewMode("single")}
         >
           <Square className="size-4" />
           Single
@@ -123,7 +108,7 @@ export function StudioToolbar({
           variant={loupeEnabled ? "secondary" : "ghost"}
           size="default"
           aria-pressed={loupeEnabled}
-          onClick={onToggleLoupe}
+          onClick={() => setLoupeEnabled((v) => !v)}
         >
           <ScanSearch className="size-4" />
           Wireframe Loupe
@@ -133,7 +118,7 @@ export function StudioToolbar({
           variant={fullWireframe ? "secondary" : "ghost"}
           size="default"
           aria-pressed={fullWireframe}
-          onClick={onToggleWireframe}
+          onClick={() => setFullWireframe((v) => !v)}
         >
           <Eye className="size-4" />
           Full Wireframe
@@ -145,7 +130,7 @@ export function StudioToolbar({
           variant="ghost"
           size="icon"
           aria-label="Zoom out"
-          onClick={onZoomOut}
+          onClick={() => zoomBy(1 / 1.25)}
         >
           <ZoomOut className="size-4" />
         </Button>
@@ -157,7 +142,7 @@ export function StudioToolbar({
             max={100}
             step={0.5}
             value={sliderValue}
-            onValueChange={onSliderZoom}
+            onValueChange={handleSliderZoom}
           />
         </div>
 
@@ -165,7 +150,7 @@ export function StudioToolbar({
           variant="ghost"
           size="icon"
           aria-label="Zoom in"
-          onClick={onZoomIn}
+          onClick={() => zoomBy(1.25)}
         >
           <ZoomIn className="size-4" />
         </Button>
@@ -174,15 +159,15 @@ export function StudioToolbar({
           aria-live="polite"
           className="w-14 text-center font-mono text-xs text-studio-muted"
         >
-          {scale.toFixed(1)}x
+          {camera.scale.toFixed(1)}x
         </span>
 
-        <Button variant="outline" size="default" onClick={onZoomFit}>
+        <Button variant="outline" size="default" onClick={zoomToFit}>
           <Maximize2 className="size-4" />
           Fit
         </Button>
 
-        <Button variant="outline" size="default" onClick={onZoom1To1}>
+        <Button variant="outline" size="default" onClick={zoom1To1}>
           1:1
         </Button>
 
@@ -203,11 +188,11 @@ export function StudioToolbar({
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
               <DropdownMenuLabel>Vector Formats</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => onExport("svg")}>
+              <DropdownMenuItem onClick={() => handleExport("svg")}>
                 <FileCode2 className="size-4" />
                 SVG (Scalable Vector)
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onExport("pdf")}>
+              <DropdownMenuItem onClick={() => handleExport("pdf")}>
                 <FileText className="size-4" />
                 PDF (Print-Ready Vector)
               </DropdownMenuItem>
@@ -215,13 +200,13 @@ export function StudioToolbar({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuLabel>Transparent Raster</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => onExport("png", 2)}>
+              <DropdownMenuItem onClick={() => handleExport("png", 2)}>
                 <ImageIcon className="size-4" />
-                PNG 2× ({dimensions.width * 2} × {dimensions.height * 2})
+                PNG 2× ({preview.width * 2} × {preview.height * 2})
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onExport("png", 4)}>
+              <DropdownMenuItem onClick={() => handleExport("png", 4)}>
                 <ImageIcon className="size-4" />
-                PNG 4× ({dimensions.width * 4} × {dimensions.height * 4})
+                PNG 4× ({preview.width * 4} × {preview.height * 4})
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

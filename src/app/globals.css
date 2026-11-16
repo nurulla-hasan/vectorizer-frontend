@@ -209,7 +209,7 @@
   .vk-wireframe-svg polyline {
     fill: none !important;
     stroke: var(--trace) !important;
-    stroke-width: 1px !important;
+    stroke-width: 0.75px !important;
     vector-effect: non-scaling-stroke !important;
     stroke-linecap: round;
     stroke-linejoin: round;

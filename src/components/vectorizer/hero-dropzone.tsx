@@ -18,6 +18,7 @@ import {
   SAMPLE_PRESETS,
   type SamplePreset,
 } from "./types";
+import { useVectorStudio } from "./vector-studio-context";
 
 const ALLOWED_RASTER_MIME_TYPES = new Set([
   "image/png",
@@ -30,15 +31,8 @@ const ALLOWED_RASTER_MIME_TYPES = new Set([
 ]);
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
-interface HeroDropzoneProps {
-  isProcessing: boolean;
-  onFileSelected: (file: File) => void;
-}
-
-export function HeroDropzone({
-  isProcessing,
-  onFileSelected,
-}: HeroDropzoneProps) {
+export function HeroDropzone() {
+  const { isProcessing, handleFileSelected: onFileSelected } = useVectorStudio();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = React.useState(false);
   const [loadingSampleId, setLoadingSampleId] = React.useState<string | null>(

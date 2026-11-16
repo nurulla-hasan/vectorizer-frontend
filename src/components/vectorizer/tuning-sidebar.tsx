@@ -14,23 +14,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import type {
-  VectorEngine,
   VectorHierarchical,
   VectorMode,
   VectorSettings,
 } from "@/lib/vectorizer-api";
-
-interface TuningSidebarProps {
-  settings: VectorSettings;
-  palette: string[];
-  pathCount: number;
-  processingMs: number | null;
-  engine?: VectorEngine;
-  dimensions: { width: number; height: number };
-  isReprocessing: boolean;
-  onSettingsChange: (next: VectorSettings) => void;
-  onReprocess: () => void;
-}
+import { useVectorStudio } from "./vector-studio-context";
 
 const MODE_LABELS: Record<VectorMode, string> = {
   spline: "Spline (Smooth Curves)",
@@ -43,17 +31,22 @@ const HIERARCHICAL_LABELS: Record<VectorHierarchical, string> = {
   cutout: "Cutout Layers",
 };
 
-export function TuningSidebar({
-  settings,
-  palette,
-  pathCount,
-  processingMs,
-  engine,
-  dimensions,
-  isReprocessing,
-  onSettingsChange,
-  onReprocess,
-}: TuningSidebarProps) {
+export function TuningSidebar() {
+  const {
+    job,
+    preview,
+    settings,
+    setSettings: onSettingsChange,
+    isReprocessing,
+    handleReprocess: onReprocess,
+  } = useVectorStudio();
+
+  if (!job || !preview) return null;
+
+  const { engine, processingMs } = job;
+  const { palette, pathCount, width, height } = preview;
+  const dimensions = { width, height };
+
   const updateField = <K extends keyof VectorSettings>(
     key: K,
     value: VectorSettings[K],
@@ -75,9 +68,11 @@ export function TuningSidebar({
             >
               {engine === "vtracer-native"
                 ? "Rust VTracer 0.6.4"
-                : engine === "potrace-bezier"
-                  ? "Potrace Bézier"
-                  : "ImageTracer"}
+                : engine === "subpixel-bezier"
+                  ? "Subpixel Bézier"
+                  : engine === "potrace-bezier"
+                    ? "Potrace Bézier"
+                    : "ImageTracer"}
             </Badge>
           )}
           {processingMs !== null && (

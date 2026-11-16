@@ -1,16 +1,12 @@
 "use client";
 
 import * as React from "react";
-import type { VectorPreviewData } from "@/lib/vectorizer-api";
-import type { CameraState } from "./types";
+import { useVectorStudio } from "./vector-studio-context";
 import { VectorSvgLayer } from "./vector-svg-layer";
 
 const LOUPE_RADIUS = 88; // 176px lens / 2 (size-44)
 
 interface WireframeLoupeProps {
-  originalUrl: string;
-  preview: VectorPreviewData;
-  camera: CameraState;
   pointer: {
     x: number;
     y: number;
@@ -19,12 +15,10 @@ interface WireframeLoupeProps {
   };
 }
 
-export function WireframeLoupe({
-  originalUrl,
-  preview,
-  camera,
-  pointer,
-}: WireframeLoupeProps) {
+export function WireframeLoupe({ pointer }: WireframeLoupeProps) {
+  const { originalUrl, preview, camera } = useVectorStudio();
+  if (!preview) return null;
+
   const loupeWorldStyle: React.CSSProperties = {
     width: `${preview.width}px`,
     height: `${preview.height}px`,

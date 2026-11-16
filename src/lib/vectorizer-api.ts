@@ -2,7 +2,11 @@ import { API_BASE_URL, apiClient } from "@/lib/api-client";
 
 export type VectorMode = "spline" | "polygon" | "pixel";
 export type VectorHierarchical = "stacked" | "cutout";
-export type VectorEngine = "vtracer-native" | "potrace-bezier" | "imagetracerjs";
+export type VectorEngine =
+  | "vtracer-native"
+  | "subpixel-bezier"
+  | "potrace-bezier"
+  | "imagetracerjs";
 export type ExportFormat = "svg" | "png" | "pdf";
 
 export interface VectorSettings {

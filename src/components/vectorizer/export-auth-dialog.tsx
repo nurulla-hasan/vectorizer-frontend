@@ -16,38 +16,32 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { getGoogleLoginUrl } from "@/lib/auth-api";
+import { useVectorStudio } from "./vector-studio-context";
 
-interface ExportAuthDialogProps {
-  mode: "AUTH_REQUIRED" | "INSUFFICIENT_CREDITS" | null;
-  loginEmail: string;
-  loginPassword: string;
-  isLoggingIn: boolean;
-  onEmailChange: (email: string) => void;
-  onPasswordChange: (password: string) => void;
-  onSubmitLogin: (event: React.FormEvent) => void;
-  onClose: () => void;
-}
+export function ExportAuthDialog() {
+  const {
+    downloadModal,
+    setDownloadModal,
+    loginEmail,
+    setLoginEmail,
+    loginPassword,
+    setLoginPassword,
+    isLoggingIn,
+    handleLoginAndRetryDownload,
+  } = useVectorStudio();
 
-export function ExportAuthDialog({
-  mode,
-  loginEmail,
-  loginPassword,
-  isLoggingIn,
-  onEmailChange,
-  onPasswordChange,
-  onSubmitLogin,
-  onClose,
-}: ExportAuthDialogProps) {
+  const closeModal = () => setDownloadModal(null);
+
   return (
     <Dialog
-      open={mode !== null}
+      open={downloadModal !== null}
       onOpenChange={(open) => {
-        if (!open) onClose();
+        if (!open) closeModal();
       }}
     >
       <DialogContent>
-        {mode === "AUTH_REQUIRED" ? (
-          <form onSubmit={onSubmitLogin} className="space-y-4">
+        {downloadModal === "AUTH_REQUIRED" ? (
+          <form onSubmit={handleLoginAndRetryDownload} className="space-y-4">
             <DialogHeader>
               <DialogTitle>Sign in to export</DialogTitle>
               <DialogDescription>
@@ -83,7 +77,7 @@ export function ExportAuthDialog({
                   required
                   placeholder="you@example.com"
                   value={loginEmail}
-                  onChange={(e) => onEmailChange(e.target.value)}
+                  onChange={(e) => setLoginEmail(e.target.value)}
                 />
               </div>
               <div className="space-y-1.5">
@@ -95,7 +89,7 @@ export function ExportAuthDialog({
                   required
                   placeholder="••••••••"
                   value={loginPassword}
-                  onChange={(e) => onPasswordChange(e.target.value)}
+                  onChange={(e) => setLoginPassword(e.target.value)}
                 />
               </div>
             </div>
@@ -111,7 +105,7 @@ export function ExportAuthDialog({
             </p>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={closeModal}>
                 Cancel
               </Button>
               <Button
@@ -133,10 +127,10 @@ export function ExportAuthDialog({
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={onClose}>
+              <Button variant="outline" onClick={closeModal}>
                 Continue Previewing
               </Button>
-              <Button onClick={onClose}>Upgrade Plan</Button>
+              <Button onClick={closeModal}>Upgrade Plan</Button>
             </DialogFooter>
           </>
         )}

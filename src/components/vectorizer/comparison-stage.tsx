@@ -2,24 +2,10 @@
 
 import * as React from "react";
 import { MoveHorizontal } from "lucide-react";
-import type { VectorPreviewData } from "@/lib/vectorizer-api";
 import { cn } from "@/lib/utils";
-import type { CameraState, ViewMode } from "./types";
+import { MAX_ZOOM_SCALE, useVectorStudio } from "./vector-studio-context";
 import { VectorSvgLayer } from "./vector-svg-layer";
 import { WireframeLoupe } from "./wireframe-loupe";
-
-interface ComparisonStageProps {
-  originalUrl: string;
-  preview: VectorPreviewData;
-  camera: CameraState;
-  minScale: number;
-  maxScale: number;
-  viewMode: ViewMode;
-  loupeEnabled: boolean;
-  fullWireframe: boolean;
-  onCameraChange: React.Dispatch<React.SetStateAction<CameraState>>;
-  onStageResize: (size: { width: number; height: number }) => void;
-}
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -48,18 +34,21 @@ function drawCrosshair(
   ctx.restore();
 }
 
-export function ComparisonStage({
-  originalUrl,
-  preview,
-  camera,
-  minScale,
-  maxScale,
-  viewMode,
-  loupeEnabled,
-  fullWireframe,
-  onCameraChange,
-  onStageResize,
-}: ComparisonStageProps) {
+export function ComparisonStage() {
+  const {
+    originalUrl,
+    preview,
+    camera,
+    minScale,
+    viewMode,
+    loupeEnabled,
+    fullWireframe,
+    setCamera: onCameraChange,
+    setStageSize: onStageResize,
+  } = useVectorStudio();
+  const maxScale = MAX_ZOOM_SCALE;
+  const previewWidth = preview?.width ?? 1;
+  const previewHeight = preview?.height ?? 1;
   const stageRef = React.useRef<HTMLDivElement>(null);
   const leftCanvasRef = React.useRef<HTMLCanvasElement>(null);
   const leftCrosshairRef = React.useRef<HTMLCanvasElement>(null);
@@ -192,15 +181,15 @@ export function ComparisonStage({
         img,
         camera.dx,
         camera.dy,
-        preview.width * camera.scale,
-        preview.height * camera.scale,
+        previewWidth * camera.scale,
+        previewHeight * camera.scale,
       );
     }
   }, [
     camera,
     imageReadyTick,
-    preview.height,
-    preview.width,
+    previewHeight,
+    previewWidth,
     stageSize.height,
     stageSize.width,
     viewMode,
@@ -305,13 +294,15 @@ export function ComparisonStage({
 
   const vectorTransformStyle = React.useMemo<React.CSSProperties>(
     () => ({
-      width: `${preview.width}px`,
-      height: `${preview.height}px`,
+      width: `${previewWidth}px`,
+      height: `${previewHeight}px`,
       transform: `translate(${camera.dx}px, ${camera.dy}px) scale(${camera.scale})`,
       transformOrigin: "0 0",
     }),
-    [camera.dx, camera.dy, camera.scale, preview.height, preview.width],
+    [camera.dx, camera.dy, camera.scale, previewHeight, previewWidth],
   );
+
+  if (!preview) return null;
 
   return (
     <div
@@ -436,12 +427,7 @@ export function ComparisonStage({
       )}
 
       {loupeEnabled && pointer && !imageLoadError && (
-        <WireframeLoupe
-          originalUrl={originalUrl}
-          preview={preview}
-          camera={camera}
-          pointer={pointer}
-        />
+        <WireframeLoupe pointer={pointer} />
       )}
     </div>
   );
