@@ -1,0 +1,8 @@
+allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
+  sharp: false
+  unrs-resolver: false
+minimumReleaseAgeExclude:
+  - '@next/swc-win32-arm64-msvc@16.4.4'
+  - next@16.4.4
