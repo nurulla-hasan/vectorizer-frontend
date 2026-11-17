@@ -21,9 +21,87 @@ import {
 } from "./vector-studio-context";
 
 function VectorStudioWorkspace() {
-  const { job, preview, resetStudio } = useVectorStudio();
+  const {
+    job,
+    preview,
+    resetStudio,
+    zoomBy,
+    zoomToFit,
+    zoom1To1,
+    undoPathEdit,
+    redoPathEdit,
+    deletePath,
+    selectedPathId,
+  } = useVectorStudio();
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const hasJob = Boolean(job && preview);
+
+  React.useEffect(() => {
+    if (!hasJob) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.isContentEditable ||
+        (target &&
+          /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
+      ) {
+        return;
+      }
+
+      const mod = event.ctrlKey || event.metaKey;
+      if (mod && event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        if (event.shiftKey) redoPathEdit();
+        else undoPathEdit();
+        return;
+      }
+      if (mod && event.key.toLowerCase() === "y") {
+        event.preventDefault();
+        redoPathEdit();
+        return;
+      }
+      if (mod) return;
+
+      switch (event.key) {
+        case "PageUp":
+          event.preventDefault();
+          zoomBy(1.25);
+          break;
+        case "PageDown":
+          event.preventDefault();
+          zoomBy(1 / 1.25);
+          break;
+        case "Home":
+          event.preventDefault();
+          zoomToFit();
+          break;
+        case "End":
+          event.preventDefault();
+          zoom1To1();
+          break;
+        case "Delete":
+        case "Backspace":
+          if (selectedPathId) {
+            event.preventDefault();
+            deletePath(selectedPathId);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    deletePath,
+    hasJob,
+    redoPathEdit,
+    selectedPathId,
+    undoPathEdit,
+    zoom1To1,
+    zoomBy,
+    zoomToFit,
+  ]);
 
   if (!hasJob) {
     return (

@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -11,9 +12,11 @@ import {
   FileText,
   Image as ImageIcon,
   Maximize2,
+  Palette,
   Pencil,
   PenTool,
   Plus,
+  Redo2,
   RotateCcw,
   Ruler,
   ScanSearch,
@@ -35,10 +38,13 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
+import { EXPORT_PRESET_LABELS, type VectorExportPreset } from "@/services";
 import {
   LOUPE_MIN_ZOOM_PERCENT,
   useVectorStudio,
@@ -60,16 +66,22 @@ export function StudioToolbar({
     loupeEnabled,
     fullWireframe,
     isDownloading,
+    exportPreset,
+    setExportPreset,
     editMode,
     setEditMode,
     selectedPathId,
     deletePath,
     removeFragments,
+    recolorPath,
+    getPathFill,
     undoPathEdit,
+    redoPathEdit,
     discardPathEdits,
     savePathEdits,
     hasUnsavedEdits,
     canUndoPathEdit,
+    canRedoPathEdit,
     isSavingEdits,
     setViewMode,
     setLoupeEnabled,
@@ -80,6 +92,9 @@ export function StudioToolbar({
     zoom1To1,
     handleExport,
   } = useVectorStudio();
+  const [recolorScope, setRecolorScope] = React.useState<"path" | "color">(
+    "path",
+  );
 
   if (!job || !preview) return null;
 
@@ -175,12 +190,79 @@ export function StudioToolbar({
               variant="secondary"
               size="icon"
               aria-label="Undo last path edit"
-              title="Undo (last path)"
+              title="Undo (Ctrl+Z)"
               disabled={!canUndoPathEdit}
               onClick={undoPathEdit}
             >
               <Undo2 className="size-4" />
             </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              aria-label="Redo last path edit"
+              title="Redo (Ctrl+Shift+Z)"
+              disabled={!canRedoPathEdit}
+              onClick={redoPathEdit}
+            >
+              <Redo2 className="size-4" />
+            </Button>
+            {selectedPathId && (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      aria-label="Recolor selected path"
+                      title="Recolor path"
+                      disabled={isSavingEdits}
+                    />
+                  }
+                >
+                  <Palette className="size-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>Apply to</DropdownMenuLabel>
+                    <DropdownMenuRadioGroup
+                      value={recolorScope}
+                      onValueChange={(value) =>
+                        setRecolorScope(value as "path" | "color")
+                      }
+                    >
+                      <DropdownMenuRadioItem value="path" closeOnClick={false}>
+                        Selected path
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="color" closeOnClick={false}>
+                        All paths with this color
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>New color</DropdownMenuLabel>
+                    <div className="grid grid-cols-6 gap-1 p-1.5">
+                      {preview.palette.slice(0, 18).map((hex) => (
+                        <button
+                          key={hex}
+                          type="button"
+                          title={hex}
+                          aria-label={`Recolor to ${hex}`}
+                          onClick={() =>
+                            recolorPath(selectedPathId, hex, recolorScope)
+                          }
+                          style={{ backgroundColor: hex }}
+                          className="size-6 rounded border border-studio-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        />
+                      ))}
+                    </div>
+                    <p className="px-2 py-1.5 text-xs text-muted-foreground">
+                      Current: {getPathFill(selectedPathId)}
+                    </p>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <Button
               variant="secondary"
               size="icon"
@@ -341,6 +423,29 @@ export function StudioToolbar({
             <ChevronDown className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Export Preset</DropdownMenuLabel>
+              <DropdownMenuRadioGroup
+                value={exportPreset}
+                onValueChange={(value) =>
+                  setExportPreset(value as VectorExportPreset)
+                }
+              >
+                {(Object.keys(EXPORT_PRESET_LABELS) as VectorExportPreset[]).map(
+                  (preset) => (
+                    <DropdownMenuRadioItem key={preset} value={preset} closeOnClick={false}>
+                      <span className="flex flex-col">
+                        <span>{EXPORT_PRESET_LABELS[preset].label}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {EXPORT_PRESET_LABELS[preset].description}
+                        </span>
+                      </span>
+                    </DropdownMenuRadioItem>
+                  ),
+                )}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuLabel>Vector Formats</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => handleExport("svg")}>

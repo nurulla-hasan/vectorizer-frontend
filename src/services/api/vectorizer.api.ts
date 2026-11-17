@@ -10,6 +10,25 @@ export type VectorEngine =
   | "potrace-bezier"
   | "imagetracerjs";
 export type ExportFormat = "svg" | "png" | "pdf" | "eps" | "dxf";
+export type VectorExportPreset = "general" | "editing" | "cutting";
+
+export const EXPORT_PRESET_LABELS: Record<
+  VectorExportPreset,
+  { label: string; description: string }
+> = {
+  general: {
+    label: "General use",
+    description: "Filled shapes with gap filler for screen and web",
+  },
+  editing: {
+    label: "Editing",
+    description: "Filled shapes without gap filler for design tools",
+  },
+  cutting: {
+    label: "Cutting",
+    description: "Open outlines for CNC, laser, and plotting",
+  },
+};
 
 export interface VectorSettings {
   colorPrecision: number;
@@ -123,6 +142,21 @@ export async function uploadAndProcessImage(
   return response.data;
 }
 
+export async function importImageFromUrl(
+  url: string,
+  settings: Partial<VectorSettings> = {},
+): Promise<VectorJobMetadata> {
+  const response = await apiClient<ApiEnvelope<VectorJobMetadata>>(
+    "/vectorizer/import-url",
+    {
+      method: "POST",
+      body: { url, ...settings },
+    },
+  );
+
+  return response.data;
+}
+
 export async function reprocessVectorJob(
   jobId: string,
   settings: Partial<VectorSettings>,
@@ -166,6 +200,7 @@ export interface ExportOptions {
   format?: ExportFormat;
   scale?: 1 | 2 | 4;
   suggestedName?: string;
+  preset?: VectorExportPreset;
 }
 
 export async function downloadVectorFile(
@@ -174,6 +209,7 @@ export async function downloadVectorFile(
 ): Promise<void> {
   const format = options.format ?? "svg";
   const scale = options.scale ?? 2;
+  const preset = options.preset ?? "general";
   const baseSuggested = (options.suggestedName || "vectorized").replace(
     /\.[^.]+$/,
     "",
@@ -186,6 +222,7 @@ export async function downloadVectorFile(
   const params = new URLSearchParams({
     format,
     scale: String(scale),
+    preset,
   });
 
   const response = await fetch(

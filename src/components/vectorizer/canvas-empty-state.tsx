@@ -12,6 +12,8 @@ import {
 // import { Logo } from "@/components/common/logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { createImage } from "@/lib/cropImage";
 import { errorToast } from "@/lib/toast";
@@ -85,9 +87,11 @@ export function CanvasEmptyState() {
     processingStage,
     cancelProcessing: onCancelProcessing,
     handleFileSelected: onFileSelected,
+    handleUrlImport: onUrlImport,
   } = useVectorStudio();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = React.useState(false);
+  const [urlValue, setUrlValue] = React.useState("");
   const [loadingSampleId, setLoadingSampleId] = React.useState<string | null>(
     null,
   );
@@ -227,6 +231,22 @@ export function CanvasEmptyState() {
     }
   };
 
+  const handleUrlSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const trimmed = urlValue.trim();
+    if (!trimmed || isProcessing) return;
+    try {
+      const parsed = new URL(trimmed);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        throw new Error("Unsupported protocol");
+      }
+    } catch {
+      errorToast("Invalid URL", "Enter a full http(s) image URL.");
+      return;
+    }
+    onUrlImport(trimmed);
+  };
+
   return (
     <div
       onDragOver={(event) => {
@@ -346,6 +366,36 @@ export function CanvasEmptyState() {
                   <ImageUp className="size-4" />
                   Choose image
                 </Button>
+
+                <div className="flex w-full max-w-sm flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <Separator className="flex-1" />
+                    <span className="text-xs text-studio-muted">
+                      or import from URL
+                    </span>
+                    <Separator className="flex-1" />
+                  </div>
+                  <form
+                    className="flex items-center gap-2"
+                    onSubmit={handleUrlSubmit}
+                  >
+                    <Input
+                      type="url"
+                      inputMode="url"
+                      aria-label="Image URL"
+                      placeholder="https://example.com/logo.png"
+                      value={urlValue}
+                      onChange={(event) => setUrlValue(event.target.value)}
+                    />
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      disabled={!urlValue.trim() || isProcessing}
+                    >
+                      Import
+                    </Button>
+                  </form>
+                </div>
 
                 <p className="flex items-center gap-1.5 text-xs text-studio-muted">
                   <ClipboardPaste className="size-3.5" />

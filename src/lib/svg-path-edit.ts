@@ -568,8 +568,13 @@ export function applySvgEdits(
   svg: string,
   overrides: Record<string, string>,
   deletedIds: readonly string[] = [],
+  fillOverrides: Record<string, string> = {},
 ): string {
-  if (Object.keys(overrides).length === 0 && deletedIds.length === 0) {
+  if (
+    Object.keys(overrides).length === 0 &&
+    Object.keys(fillOverrides).length === 0 &&
+    deletedIds.length === 0
+  ) {
     return svg;
   }
 
@@ -582,11 +587,17 @@ export function applySvgEdits(
       const id = `p_${index++}`;
       if (deleted.has(id)) return "";
       const nextD = overrides[id];
-      if (!nextD) return match;
-      const nextAttrs = attrs.replace(
-        /\bd=(["'])[\s\S]*?\1/i,
-        `d="${nextD}"`,
-      );
+      const nextFill = fillOverrides[id];
+      if (!nextD && !nextFill) return match;
+      let nextAttrs = attrs;
+      if (nextD) {
+        nextAttrs = nextAttrs.replace(/\bd=(["'])[\s\S]*?\1/i, `d="${nextD}"`);
+      }
+      if (nextFill) {
+        nextAttrs = /\bfill=(["'])/i.test(nextAttrs)
+          ? nextAttrs.replace(/\bfill=(["'])[\s\S]*?\1/i, `fill="${nextFill}"`)
+          : `${nextAttrs} fill="${nextFill}"`;
+      }
       return `<path${nextAttrs}${selfClose}>`;
     },
   );

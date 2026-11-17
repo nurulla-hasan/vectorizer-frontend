@@ -8,6 +8,7 @@ interface VectorSvgLayerProps {
   preview: VectorPreviewData;
   wireframe: boolean;
   pathOverrides?: Record<string, string>;
+  fillOverrides?: Record<string, string>;
   deletedPathIds?: readonly string[];
   editMode?: boolean;
   selectedPathId?: string | null;
@@ -18,6 +19,7 @@ export const VectorSvgLayer = React.memo(function VectorSvgLayer({
   preview,
   wireframe,
   pathOverrides,
+  fillOverrides,
   deletedPathIds,
   editMode = false,
   selectedPathId,
@@ -49,7 +51,9 @@ export const VectorSvgLayer = React.memo(function VectorSvgLayer({
           return (
             <path
               key={item.id}
-              fill={wireframe ? "none" : item.fill}
+              fill={
+                wireframe ? "none" : (fillOverrides?.[item.id] ?? item.fill)
+              }
               fillRule={item.fillRule}
               stroke={
                 wireframe

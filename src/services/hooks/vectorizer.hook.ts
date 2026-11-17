@@ -5,6 +5,7 @@ import {
   downloadVectorFile,
   type ExportOptions,
   getVectorPreview,
+  importImageFromUrl,
   reprocessVectorJob,
   saveSvgEdits,
   uploadAndProcessImage,
@@ -41,6 +42,21 @@ export function useProcessImage() {
       file: File;
       settings?: Partial<VectorSettings>;
     }) => uploadAndProcessImage(file, settings),
+  });
+}
+
+/**
+ * Download a remote image by URL and run vectorization on it.
+ */
+export function useImportImageFromUrl() {
+  return useMutation({
+    mutationFn: ({
+      url,
+      settings,
+    }: {
+      url: string;
+      settings?: Partial<VectorSettings>;
+    }) => importImageFromUrl(url, settings),
   });
 }
 

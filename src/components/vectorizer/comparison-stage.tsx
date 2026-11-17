@@ -30,11 +30,11 @@ export function ComparisonStage() {
     selectedPathId,
     setSelectedPathId,
     pathOverrides,
+    fillOverrides,
     deletedPathIds,
     getPathD,
     setPathD,
     beginPathEdit,
-    deletePath,
     setCamera: onCameraChange,
     setStageSize: onStageResize,
   } = useVectorStudio();
@@ -160,28 +160,6 @@ export function ComparisonStage() {
     el.addEventListener("wheel", handleWheel, { passive: false });
     return () => el.removeEventListener("wheel", handleWheel);
   }, [maxScale, minScale, onCameraChange]);
-
-  React.useEffect(() => {
-    if (!editMode) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Delete" && event.key !== "Backspace") return;
-      if (!selectedPathId) return;
-      const target = event.target as HTMLElement | null;
-      if (
-        target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.tagName === "SELECT" ||
-          target.isContentEditable)
-      ) {
-        return;
-      }
-      event.preventDefault();
-      deletePath(selectedPathId);
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [deletePath, editMode, selectedPathId]);
 
   // Draw the original raster beneath the vector layer in curtain mode only.
   React.useEffect(() => {
@@ -328,6 +306,7 @@ export function ComparisonStage() {
                 preview={preview}
                 wireframe={fullWireframe}
                 pathOverrides={pathOverrides}
+                fillOverrides={fillOverrides}
                 deletedPathIds={deletedPathIds}
               />
             </div>
@@ -379,6 +358,7 @@ export function ComparisonStage() {
               preview={preview}
               wireframe={fullWireframe}
               pathOverrides={pathOverrides}
+              fillOverrides={fillOverrides}
               deletedPathIds={deletedPathIds}
               editMode={editMode}
               selectedPathId={selectedPathId}

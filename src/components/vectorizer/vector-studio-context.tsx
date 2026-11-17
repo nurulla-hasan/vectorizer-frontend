@@ -10,6 +10,7 @@ import {
   getOriginalImageUrl,
   getVectorPreview,
   useDownloadVectorFile,
+  useImportImageFromUrl,
   useLogin,
   useProcessImage,
   useReprocessVectorJob,
@@ -18,6 +19,7 @@ import {
   type VectorJobMetadata,
   type VectorPreviewData,
   type VectorSettings,
+  type VectorExportPreset,
 } from "@/services";
 import type { CameraState, ViewMode } from "./types";
 
@@ -36,8 +38,10 @@ export interface PendingExportRequest {
 
 interface PathEditChange {
   pathId: string;
-  /** Absent when the undo step does not touch this path's override. */
+  /** Absent when the undo step does not touch this path's geometry override. */
   d?: string;
+  /** Absent when the undo step does not touch this path's fill override. */
+  fill?: string;
   wasDeleted: boolean;
 }
 
@@ -53,6 +57,7 @@ const VectorStudioContext =
 
 function useVectorStudioController() {
   const { mutateAsync: processImage } = useProcessImage();
+  const { mutateAsync: importImage } = useImportImageFromUrl();
   const { mutateAsync: reprocessJob } = useReprocessVectorJob();
   const { mutateAsync: saveEdits } = useSaveSvgEdits();
   const { mutateAsync: downloadFile } = useDownloadVectorFile();
@@ -71,6 +76,8 @@ function useVectorStudioController() {
   const processingTokenRef = React.useRef(0);
   const [isReprocessing, setIsReprocessing] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
+  const [exportPreset, setExportPreset] =
+    React.useState<VectorExportPreset>("general");
 
   const [viewMode, setViewMode] = React.useState<ViewMode>("single");
   const [loupeEnabled, setLoupeEnabled] = React.useState(true);
@@ -83,8 +90,12 @@ function useVectorStudioController() {
   const [pathOverrides, setPathOverrides] = React.useState<
     Record<string, string>
   >({});
+  const [fillOverrides, setFillOverrides] = React.useState<
+    Record<string, string>
+  >({});
   const [deletedPathIds, setDeletedPathIds] = React.useState<string[]>([]);
   const [editHistory, setEditHistory] = React.useState<PathEditBatch[]>([]);
+  const [redoHistory, setRedoHistory] = React.useState<PathEditBatch[]>([]);
   const [isSavingEdits, setIsSavingEdits] = React.useState(false);
 
   const [stageSize, setStageSize] = React.useState({ width: 900, height: 560 });
@@ -206,6 +217,43 @@ function useVectorStudioController() {
     [minScale, paneHeight, paneWidth],
   );
 
+  const applyCreatedJob = React.useCallback(
+    async (createdJob: VectorJobMetadata, token: number) => {
+      setProcessingStage("preview");
+      const previewRes = await getVectorPreview(createdJob.id);
+      if (processingTokenRef.current !== token) return;
+
+      setJob({
+        ...createdJob,
+        engine: previewRes.engine ?? createdJob.engine,
+      });
+      setPreview(previewRes.preview);
+      setSettings(createdJob.settings);
+      setPathOverrides({});
+      setFillOverrides({});
+      setDeletedPathIds([]);
+      setEditHistory([]);
+      setRedoHistory([]);
+      setSelectedPathId(null);
+
+      const initialPaneW = Math.max(1, stageSize.width);
+      setCamera(
+        computeFitCamera(
+          previewRes.preview.width,
+          previewRes.preview.height,
+          initialPaneW,
+          stageSize.height,
+        ),
+      );
+
+      successToast(
+        "Vectorized successfully",
+        `${previewRes.preview.pathCount} paths traced in ${createdJob.processingMs ?? 0} ms`,
+      );
+    },
+    [computeFitCamera, stageSize.height, stageSize.width],
+  );
+
   const handleFileSelected = React.useCallback(
     async (file: File) => {
       const token = ++processingTokenRef.current;
@@ -214,36 +262,7 @@ function useVectorStudioController() {
       try {
         const createdJob = await processImage({ file, settings });
         if (processingTokenRef.current !== token) return;
-
-        setProcessingStage("preview");
-        const previewRes = await getVectorPreview(createdJob.id);
-        if (processingTokenRef.current !== token) return;
-
-        setJob({
-          ...createdJob,
-          engine: previewRes.engine ?? createdJob.engine,
-        });
-        setPreview(previewRes.preview);
-        setSettings(createdJob.settings);
-        setPathOverrides({});
-        setDeletedPathIds([]);
-        setEditHistory([]);
-        setSelectedPathId(null);
-
-        const initialPaneW = Math.max(1, stageSize.width);
-        setCamera(
-          computeFitCamera(
-            previewRes.preview.width,
-            previewRes.preview.height,
-            initialPaneW,
-            stageSize.height,
-          ),
-        );
-
-        successToast(
-          "Vectorized successfully",
-          `${previewRes.preview.pathCount} paths traced in ${createdJob.processingMs ?? 0} ms`,
-        );
+        await applyCreatedJob(createdJob, token);
       } catch (error: unknown) {
         if (processingTokenRef.current === token) {
           errorToast(
@@ -258,7 +277,33 @@ function useVectorStudioController() {
         }
       }
     },
-    [computeFitCamera, processImage, settings, stageSize.height, stageSize.width],
+    [applyCreatedJob, processImage, settings],
+  );
+
+  const handleUrlImport = React.useCallback(
+    async (url: string) => {
+      const token = ++processingTokenRef.current;
+      setIsProcessing(true);
+      setProcessingStage("process");
+      try {
+        const createdJob = await importImage({ url, settings });
+        if (processingTokenRef.current !== token) return;
+        await applyCreatedJob(createdJob, token);
+      } catch (error: unknown) {
+        if (processingTokenRef.current === token) {
+          errorToast(
+            "URL import failed",
+            getErrorMessage(error, "Could not import or vectorize that image URL."),
+          );
+        }
+      } finally {
+        if (processingTokenRef.current === token) {
+          setIsProcessing(false);
+          setProcessingStage(null);
+        }
+      }
+    },
+    [applyCreatedJob, importImage, settings],
   );
 
   const cancelProcessing = React.useCallback(() => {
@@ -275,8 +320,10 @@ function useVectorStudioController() {
       setJob(updated);
       setPreview(updated.preview);
       setPathOverrides({});
+      setFillOverrides({});
       setDeletedPathIds([]);
       setEditHistory([]);
+      setRedoHistory([]);
       setSelectedPathId(null);
       successToast(
         "Re-vectorized",
@@ -311,6 +358,15 @@ function useVectorStudioController() {
     [pathOverrides, preview],
   );
 
+  const getPathFill = React.useCallback(
+    (pathId: string): string => {
+      const overridden = fillOverrides[pathId];
+      if (overridden !== undefined) return overridden;
+      return preview?.paths.find((item) => item.id === pathId)?.fill ?? "#000000";
+    },
+    [fillOverrides, preview],
+  );
+
   const setPathD = React.useCallback(
     (pathId: string, d: string) => {
       const baseD = preview?.paths.find((item) => item.id === pathId)?.d;
@@ -341,48 +397,132 @@ function useVectorStudioController() {
           },
         ],
       ]);
+      setRedoHistory([]);
     },
     [deletedPathIds, getPathD],
+  );
+
+  const applyHistoryBatch = React.useCallback(
+    (batch: PathEditBatch) => {
+      setPathOverrides((prev) => {
+        const next = { ...prev };
+        for (const change of batch) {
+          if (change.d === undefined) continue;
+          const baseD = preview?.paths.find(
+            (item) => item.id === change.pathId,
+          )?.d;
+          if (baseD !== undefined && change.d === baseD) {
+            delete next[change.pathId];
+          } else {
+            next[change.pathId] = change.d;
+          }
+        }
+        return next;
+      });
+      setFillOverrides((prev) => {
+        const next = { ...prev };
+        for (const change of batch) {
+          if (change.fill === undefined) continue;
+          const baseFill = preview?.paths.find(
+            (item) => item.id === change.pathId,
+          )?.fill;
+          if (baseFill !== undefined && change.fill === baseFill) {
+            delete next[change.pathId];
+          } else {
+            next[change.pathId] = change.fill;
+          }
+        }
+        return next;
+      });
+      setDeletedPathIds((prev) => {
+        const ids = new Set(prev);
+        for (const change of batch) {
+          if (change.wasDeleted) ids.add(change.pathId);
+          else ids.delete(change.pathId);
+        }
+        return ids.size === prev.length && prev.every((id) => ids.has(id))
+          ? prev
+          : Array.from(ids);
+      });
+      const reDeleted = new Set(
+        batch
+          .filter((change) => change.wasDeleted)
+          .map((change) => change.pathId),
+      );
+      if (reDeleted.size > 0) {
+        setSelectedPathId((current) =>
+          current && reDeleted.has(current) ? null : current,
+        );
+      }
+    },
+    [preview],
   );
 
   const undoPathEdit = React.useCallback(() => {
     if (editHistory.length === 0) return;
     const batch = editHistory[editHistory.length - 1];
     setEditHistory((prev) => prev.slice(0, -1));
-    setPathOverrides((prev) => {
-      const next = { ...prev };
-      for (const change of batch) {
-        if (change.d === undefined) continue;
-        const baseD = preview?.paths.find(
-          (item) => item.id === change.pathId,
-        )?.d;
-        if (baseD !== undefined && change.d === baseD) {
-          delete next[change.pathId];
-        } else {
-          next[change.pathId] = change.d;
+    const deleted = new Set(deletedPathIds);
+    const inverse: PathEditBatch = batch.map((change) => ({
+      pathId: change.pathId,
+      ...(change.d !== undefined ? { d: getPathD(change.pathId) } : {}),
+      ...(change.fill !== undefined ? { fill: getPathFill(change.pathId) } : {}),
+      wasDeleted: deleted.has(change.pathId),
+    }));
+    setRedoHistory((prev) => [...prev.slice(-49), inverse]);
+    applyHistoryBatch(batch);
+  }, [applyHistoryBatch, deletedPathIds, editHistory, getPathD, getPathFill]);
+
+  const redoPathEdit = React.useCallback(() => {
+    if (redoHistory.length === 0) return;
+    const batch = redoHistory[redoHistory.length - 1];
+    setRedoHistory((prev) => prev.slice(0, -1));
+    setEditHistory((prev) => [...prev.slice(-49), batch]);
+    applyHistoryBatch(batch);
+  }, [applyHistoryBatch, redoHistory]);
+
+  const recolorPath = React.useCallback(
+    (pathId: string, fill: string, scope: "path" | "color" = "path") => {
+      if (!preview) return;
+      const sourceFill = getPathFill(pathId);
+      const targets =
+        scope === "color"
+          ? preview.paths
+              .filter(
+                (item) =>
+                  !deletedPathIds.includes(item.id) &&
+                  getPathFill(item.id) === sourceFill,
+              )
+              .map((item) => item.id)
+          : [pathId];
+
+      const batch: PathEditBatch = [];
+      for (const id of targets) {
+        const before = getPathFill(id);
+        if (before === fill) continue;
+        batch.push({ pathId: id, fill: before, wasDeleted: false });
+      }
+      if (batch.length === 0) return;
+
+      setEditHistory((prev) => [...prev.slice(-49), batch]);
+      setRedoHistory([]);
+      setFillOverrides((prev) => {
+        const next = { ...prev };
+        for (const change of batch) {
+          const baseFill = preview.paths.find(
+            (item) => item.id === change.pathId,
+          )?.fill;
+          if (baseFill !== undefined && fill === baseFill) {
+            delete next[change.pathId];
+          } else {
+            next[change.pathId] = fill;
+          }
         }
-      }
-      return next;
-    });
-    setDeletedPathIds((prev) => {
-      const ids = new Set(prev);
-      for (const change of batch) {
-        if (change.wasDeleted) ids.add(change.pathId);
-        else ids.delete(change.pathId);
-      }
-      return ids.size === prev.length && prev.every((id) => ids.has(id))
-        ? prev
-        : Array.from(ids);
-    });
-    const reDeleted = new Set(
-      batch.filter((change) => change.wasDeleted).map((change) => change.pathId),
-    );
-    if (reDeleted.size > 0) {
-      setSelectedPathId((current) =>
-        current && reDeleted.has(current) ? null : current,
-      );
-    }
-  }, [editHistory, preview]);
+        return next;
+      });
+    },
+    [deletedPathIds, getPathFill, preview],
+  );
 
   const deletePath = React.useCallback(
     (pathId: string) => {
@@ -398,6 +538,7 @@ function useVectorStudioController() {
           },
         ],
       ]);
+      setRedoHistory([]);
       setDeletedPathIds((prev) =>
         prev.includes(pathId) ? prev : [...prev, pathId],
       );
@@ -435,6 +576,7 @@ function useVectorStudioController() {
       }
 
       setEditHistory((prev) => [...prev.slice(-49), batch]);
+      setRedoHistory([]);
       setDeletedPathIds(Array.from(deleted));
       successToast(
         `Removed ${batch.length} fragment${batch.length === 1 ? "" : "s"}`,
@@ -447,8 +589,10 @@ function useVectorStudioController() {
 
   const discardPathEdits = React.useCallback(() => {
     setPathOverrides({});
+    setFillOverrides({});
     setDeletedPathIds([]);
     setEditHistory([]);
+    setRedoHistory([]);
     setSelectedPathId(null);
   }, []);
 
@@ -456,21 +600,28 @@ function useVectorStudioController() {
     (
       overrides: Record<string, string>,
       deleted: readonly string[],
+      fills: Record<string, string>,
     ): string => {
       if (!preview) return "";
-      return applySvgEdits(preview.svg, overrides, deleted);
+      return applySvgEdits(preview.svg, overrides, deleted, fills);
     },
     [preview],
   );
 
   const hasUnsavedEdits =
-    Object.keys(pathOverrides).length > 0 || deletedPathIds.length > 0;
+    Object.keys(pathOverrides).length > 0 ||
+    Object.keys(fillOverrides).length > 0 ||
+    deletedPathIds.length > 0;
 
   const savePathEdits = React.useCallback(async () => {
     if (!job || !preview || !hasUnsavedEdits) return;
     setIsSavingEdits(true);
     try {
-      const editedSvg = buildEditedSvg(pathOverrides, deletedPathIds);
+      const editedSvg = buildEditedSvg(
+        pathOverrides,
+        deletedPathIds,
+        fillOverrides,
+      );
       await saveEdits({ jobId: job.id, svg: editedSvg });
       setPreview((prev) => {
         if (!prev) return prev;
@@ -483,6 +634,7 @@ function useVectorStudioController() {
             ...item,
             id: `p_${position}`,
             d: pathOverrides[item.id] ?? item.d,
+            fill: fillOverrides[item.id] ?? item.fill,
           }));
         return {
           ...prev,
@@ -492,8 +644,10 @@ function useVectorStudioController() {
         };
       });
       setPathOverrides({});
+      setFillOverrides({});
       setDeletedPathIds([]);
       setEditHistory([]);
+      setRedoHistory([]);
       setSelectedPathId(null);
       successToast(
         "Edits saved",
@@ -510,6 +664,7 @@ function useVectorStudioController() {
   }, [
     buildEditedSvg,
     deletedPathIds,
+    fillOverrides,
     hasUnsavedEdits,
     job,
     pathOverrides,
@@ -528,12 +683,16 @@ function useVectorStudioController() {
           options: {
             format,
             scale,
+            preset: exportPreset,
             suggestedName: job.originalName,
           },
         });
         const label =
           format === "png" ? `PNG (${scale}×)` : format.toUpperCase();
-        successToast("Export complete", `${label} downloaded successfully.`);
+        successToast(
+          "Export complete",
+          `${label} downloaded · ${exportPreset} preset.`,
+        );
       } catch (error: unknown) {
         if (error instanceof VectorizerDownloadError) {
           if (
@@ -552,7 +711,7 @@ function useVectorStudioController() {
         setIsDownloading(false);
       }
     },
-    [downloadFile, job],
+    [downloadFile, exportPreset, job],
   );
 
   const handleLoginAndRetryDownload = React.useCallback(
@@ -587,8 +746,10 @@ function useVectorStudioController() {
     setEditModeState(false);
     setSelectedPathId(null);
     setPathOverrides({});
+    setFillOverrides({});
     setDeletedPathIds([]);
     setEditHistory([]);
+    setRedoHistory([]);
   }, []);
 
   const originalUrl = job ? getOriginalImageUrl(job.id) : "";
@@ -604,6 +765,8 @@ function useVectorStudioController() {
     cancelProcessing,
     isReprocessing,
     isDownloading,
+    exportPreset,
+    setExportPreset,
     viewMode,
     setViewMode,
     loupeEnabled,
@@ -615,17 +778,22 @@ function useVectorStudioController() {
     selectedPathId,
     setSelectedPathId,
     pathOverrides,
+    fillOverrides,
     deletedPathIds,
     getPathD,
+    getPathFill,
     setPathD,
     beginPathEdit,
     deletePath,
     removeFragments,
+    recolorPath,
     undoPathEdit,
+    redoPathEdit,
     discardPathEdits,
     savePathEdits,
     hasUnsavedEdits,
     canUndoPathEdit: editHistory.length > 0,
+    canRedoPathEdit: redoHistory.length > 0,
     isSavingEdits,
     camera,
     setCamera,
@@ -637,6 +805,7 @@ function useVectorStudioController() {
     zoomBy,
     handleSliderZoom,
     handleFileSelected,
+    handleUrlImport,
     handleReprocess,
     handleExport,
     downloadModal,

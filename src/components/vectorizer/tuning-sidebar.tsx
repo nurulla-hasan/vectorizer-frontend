@@ -3,6 +3,14 @@
 import { RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -49,6 +57,11 @@ export function TuningSidebar() {
     setSettings: onSettingsChange,
     isReprocessing,
     handleReprocess: onReprocess,
+    editMode,
+    setEditMode,
+    deletedPathIds,
+    getPathFill,
+    recolorPath,
   } = useVectorStudio();
 
   if (!job || !preview) return null;
@@ -56,6 +69,23 @@ export function TuningSidebar() {
   const { engine, processingMs } = job;
   const { palette, pathCount, width, height } = preview;
   const dimensions = { width, height };
+
+  const livePaletteCounts = new Map<string, number>();
+  for (const item of preview.paths) {
+    if (deletedPathIds.includes(item.id)) continue;
+    const fill = getPathFill(item.id);
+    livePaletteCounts.set(fill, (livePaletteCounts.get(fill) ?? 0) + 1);
+  }
+
+  const recolorCluster = (sourceHex: string, targetHex: string) => {
+    const source = preview.paths.find(
+      (item) =>
+        !deletedPathIds.includes(item.id) && getPathFill(item.id) === sourceHex,
+    );
+    if (!source) return;
+    if (!editMode) setEditMode(true);
+    recolorPath(source.id, targetHex, "color");
+  };
 
   const updateField = <K extends keyof VectorSettings>(
     key: K,
@@ -252,16 +282,73 @@ export function TuningSidebar() {
               {palette.length} colors
             </span>
           </div>
+          <p className="text-xs text-studio-muted">
+            Pick a color to recolor or merge every path using it.
+          </p>
           <ul className="flex flex-wrap gap-1.5" aria-label="Detected SVG colors">
-            {palette.slice(0, 24).map((hex) => (
-              <li
-                key={hex}
-                title={hex}
-                aria-label={`Color ${hex}`}
-                style={{ backgroundColor: hex }}
-                className="size-5 rounded border border-studio-border"
-              />
-            ))}
+            {palette.slice(0, 24).map((hex) => {
+              const pathsUsingColor = livePaletteCounts.get(hex) ?? 0;
+              return (
+                <li key={hex}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <button
+                          type="button"
+                          title={`${hex} · ${pathsUsingColor} path${
+                            pathsUsingColor === 1 ? "" : "s"
+                          }`}
+                          aria-label={`Edit color ${hex}`}
+                          style={{ backgroundColor: hex }}
+                          className="size-5 rounded border border-studio-border focus-visible:outline-2 focus-visible:outline-ring"
+                        />
+                      }
+                    />
+                    <DropdownMenuContent align="start" className="w-56">
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel>
+                          {hex} · {pathsUsingColor} path
+                          {pathsUsingColor === 1 ? "" : "s"}
+                        </DropdownMenuLabel>
+                      </DropdownMenuGroup>
+                      <DropdownMenuSeparator />
+                      {pathsUsingColor === 0 ? (
+                        <p className="px-1.5 py-1 text-xs text-muted-foreground">
+                          No paths use this color right now.
+                        </p>
+                      ) : (
+                        <DropdownMenuGroup>
+                          <DropdownMenuLabel>
+                            Recolor / merge into
+                          </DropdownMenuLabel>
+                          <div className="grid grid-cols-6 gap-1 p-1.5">
+                            {palette
+                              .filter((target) => target !== hex)
+                              .slice(0, 24)
+                              .map((target) => (
+                                <button
+                                  key={target}
+                                  type="button"
+                                  title={target}
+                                  aria-label={`Recolor to ${target}`}
+                                  onClick={() => recolorCluster(hex, target)}
+                                  style={{ backgroundColor: target }}
+                                  className="size-6 rounded border border-studio-border focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                                />
+                              ))}
+                          </div>
+                          <p className="px-1.5 pb-1 text-xs text-muted-foreground">
+                            Applies to all {pathsUsingColor} path
+                            {pathsUsingColor === 1 ? "" : "s"} with this color.
+                            Undo works.
+                          </p>
+                        </DropdownMenuGroup>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
