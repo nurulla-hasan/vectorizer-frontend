@@ -14,11 +14,21 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import type {
+  VectorEngine,
   VectorHierarchical,
   VectorMode,
   VectorSettings,
 } from "@/lib/vectorizer-api";
 import { useVectorStudio } from "./vector-studio-context";
+
+const ENGINE_LABELS: Record<VectorEngine, string> = {
+  "ai-vtracer-native": "AI + Rust VTracer",
+  "ai-potrace-bezier": "AI + Potrace Bézier",
+  "vtracer-native": "Rust VTracer 0.6.4",
+  "subpixel-bezier": "Subpixel Bézier",
+  "potrace-bezier": "Potrace Bézier",
+  imagetracerjs: "ImageTracer",
+};
 
 const MODE_LABELS: Record<VectorMode, string> = {
   spline: "Spline (Smooth Curves)",
@@ -66,13 +76,7 @@ export function TuningSidebar() {
             <Badge
               variant={engine === "imagetracerjs" ? "outline" : "default"}
             >
-              {engine === "vtracer-native"
-                ? "Rust VTracer 0.6.4"
-                : engine === "subpixel-bezier"
-                  ? "Subpixel Bézier"
-                  : engine === "potrace-bezier"
-                    ? "Potrace Bézier"
-                    : "ImageTracer"}
+              {ENGINE_LABELS[engine] ?? "ImageTracer"}
             </Badge>
           )}
           {processingMs !== null && (
