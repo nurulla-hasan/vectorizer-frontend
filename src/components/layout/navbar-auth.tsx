@@ -55,11 +55,11 @@ export function NavbarAuth() {
   if (!user) {
     return (
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="default" render={<Link href="/login" />}>
+        <Button variant="ghost" size="default" render={<Link href="/auth/login" />}>
           <LogIn className="size-4" />
           Log in
         </Button>
-        <Button size="default" render={<Link href="/register" />}>
+        <Button size="default" render={<Link href="/auth/register" />}>
           <UserPlus className="size-4" />
           Sign up
         </Button>

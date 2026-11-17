@@ -97,7 +97,7 @@ export function ExportAuthDialog() {
             <p className="text-xs text-muted-foreground">
               New here?{" "}
               <Link
-                href="/register"
+                href="/auth/register"
                 className="font-medium text-primary hover:underline"
               >
                 Create a free account (5 credits)
