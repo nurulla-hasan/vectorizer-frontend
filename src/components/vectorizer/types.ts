@@ -1,5 +1,23 @@
 export type ViewMode = "curtain" | "single";
 
+/** Backend traces images resized to this longest side. */
+export const MAX_VECTOR_DIMENSION = 2048;
+/** Hard client limit for the processed file (also the backend upload cap). */
+export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+/** Absolute cap for pre-crop source images. */
+export const MAX_SOURCE_BYTES = 25 * 1024 * 1024;
+export const MAX_SOURCE_MEGAPIXELS = 50;
+
+export const CROPPABLE_MIME_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/webp",
+  "image/gif",
+  "image/bmp",
+  "image/tiff",
+]);
+
 export interface CameraState {
   scale: number;
   dx: number;

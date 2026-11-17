@@ -103,6 +103,88 @@ export async function getCroppedImg(
   return canvasToFile(canvas, fileName, mimeType, quality);
 }
 
+type RasterCropOptions = {
+  fileName?: string;
+  maxDimension?: number;
+  maxBytes?: number;
+  preferTransparent?: boolean;
+};
+
+/**
+ * Crops an arbitrary pixel region and downscales it to `maxDimension`,
+ * falling back to smaller encodings until the file fits `maxBytes`.
+ */
+export async function getCroppedRasterFile(
+  imageSrc: string,
+  pixelCrop: PixelCrop,
+  options: RasterCropOptions = {}
+): Promise<File | null> {
+  const {
+    fileName = "image-crop.png",
+    maxDimension = 2048,
+    maxBytes = 5 * 1024 * 1024,
+    preferTransparent = true,
+  } = options;
+
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) return null;
+
+  const scale = Math.min(
+    1,
+    maxDimension / Math.max(1, pixelCrop.width, pixelCrop.height)
+  );
+  const targetWidth = Math.max(1, Math.round(pixelCrop.width * scale));
+  const targetHeight = Math.max(1, Math.round(pixelCrop.height * scale));
+
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    targetWidth,
+    targetHeight
+  );
+
+  const baseName = fileName.replace(/\.[^/.]+$/, "") || "image";
+  const attempts: { mimeType: "image/png" | "image/webp" | "image/jpeg"; quality: number }[] =
+    preferTransparent
+      ? [
+          { mimeType: "image/png", quality: 1 },
+          { mimeType: "image/webp", quality: 0.95 },
+          { mimeType: "image/jpeg", quality: 0.9 },
+        ]
+      : [
+          { mimeType: "image/jpeg", quality: 0.92 },
+          { mimeType: "image/webp", quality: 0.9 },
+          { mimeType: "image/png", quality: 1 },
+        ];
+
+  let candidate: File | null = null;
+  for (const attempt of attempts) {
+    const extension = getFileExtension(attempt.mimeType);
+    candidate = await canvasToFile(
+      canvas,
+      `${baseName}-crop.${extension}`,
+      attempt.mimeType,
+      attempt.quality
+    );
+    if (candidate && candidate.size <= maxBytes) return candidate;
+  }
+
+  return candidate;
+}
+
 export async function cropAndCompressAvatar(
   file: File,
   options: AvatarImageOptions = {}

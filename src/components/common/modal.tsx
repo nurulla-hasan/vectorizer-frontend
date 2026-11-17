@@ -29,6 +29,7 @@ interface ModalProps {
   size?: keyof typeof sizeClasses;
   showClose?: boolean;
   className?: string;
+  bodyClassName?: string;
 }
 
 export function Modal({
@@ -41,6 +42,7 @@ export function Modal({
   size = "default",
   showClose = false,
   className,
+  bodyClassName,
 }: ModalProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
@@ -68,7 +70,12 @@ export function Modal({
           </DialogHeader>
         )}
 
-        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-4 py-4">
+        <div
+          className={cn(
+            "min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-4 py-4",
+            bodyClassName,
+          )}
+        >
           {children}
         </div>
 

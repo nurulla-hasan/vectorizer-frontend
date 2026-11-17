@@ -13,26 +13,22 @@ import { Logo } from "@/components/common/logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { createImage } from "@/lib/cropImage";
 import { errorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { PreCropDialog } from "./pre-crop-dialog";
 import {
   createSampleImageFile,
+  CROPPABLE_MIME_TYPES,
   drawSamplePreset,
+  MAX_SOURCE_BYTES,
+  MAX_SOURCE_MEGAPIXELS,
+  MAX_UPLOAD_BYTES,
+  MAX_VECTOR_DIMENSION,
   SAMPLE_PRESETS,
   type SamplePreset,
 } from "./types";
 import { useVectorStudio } from "./vector-studio-context";
-
-const ALLOWED_RASTER_MIME_TYPES = new Set([
-  "image/png",
-  "image/jpeg",
-  "image/jpg",
-  "image/webp",
-  "image/gif",
-  "image/bmp",
-  "image/tiff",
-]);
-const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 function SampleThumbnail({ presetId }: { presetId: string }) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
@@ -94,23 +90,88 @@ export function CanvasEmptyState() {
   const [loadingSampleId, setLoadingSampleId] = React.useState<string | null>(
     null,
   );
+  const [pendingCrop, setPendingCrop] = React.useState<{
+    file: File;
+    src: string;
+  } | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (pendingCrop) URL.revokeObjectURL(pendingCrop.src);
+    };
+  }, [pendingCrop]);
 
   const validateAndSelectFile = React.useCallback(
-    (file: File) => {
-      if (!ALLOWED_RASTER_MIME_TYPES.has(file.type)) {
+    async (file: File) => {
+      if (!CROPPABLE_MIME_TYPES.has(file.type)) {
         errorToast(
           "Unsupported file format",
           "Please choose a PNG, JPG, WebP, GIF, BMP, or TIFF raster image.",
         );
         return;
       }
-      if (file.size > MAX_UPLOAD_BYTES) {
-        errorToast("File too large", "Please upload an image up to 5 MB.");
+      if (file.size > MAX_SOURCE_BYTES) {
+        errorToast(
+          "File too large",
+          `Please choose an image up to ${Math.round(MAX_SOURCE_BYTES / (1024 * 1024))} MB.`,
+        );
         return;
       }
-      onFileSelected(file);
+
+      const objectUrl = URL.createObjectURL(file);
+      try {
+        const image = await createImage(objectUrl);
+        const width = image.naturalWidth;
+        const height = image.naturalHeight;
+
+        if (!width || !height) {
+          throw new Error("Invalid image dimensions");
+        }
+        if ((width * height) / 1_000_000 > MAX_SOURCE_MEGAPIXELS) {
+          URL.revokeObjectURL(objectUrl);
+          errorToast(
+            "Image too large",
+            `Please choose an image up to ${MAX_SOURCE_MEGAPIXELS} megapixels.`,
+          );
+          return;
+        }
+
+        const needsCrop =
+          width > MAX_VECTOR_DIMENSION ||
+          height > MAX_VECTOR_DIMENSION ||
+          file.size > MAX_UPLOAD_BYTES;
+
+        if (needsCrop) {
+          setPendingCrop({ file, src: objectUrl });
+          return;
+        }
+
+        URL.revokeObjectURL(objectUrl);
+        onFileSelected(file);
+      } catch {
+        URL.revokeObjectURL(objectUrl);
+        errorToast(
+          "Could not read image",
+          "The selected file could not be opened as an image.",
+        );
+      }
     },
     [onFileSelected],
+  );
+
+  const closeCropDialog = React.useCallback(() => {
+    if (pendingCrop) URL.revokeObjectURL(pendingCrop.src);
+    setPendingCrop(null);
+    if (inputRef.current) inputRef.current.value = "";
+  }, [pendingCrop]);
+
+  const confirmCrop = React.useCallback(
+    (croppedFile: File) => {
+      if (pendingCrop) URL.revokeObjectURL(pendingCrop.src);
+      setPendingCrop(null);
+      onFileSelected(croppedFile);
+    },
+    [onFileSelected, pendingCrop],
   );
 
   React.useEffect(() => {
@@ -124,7 +185,7 @@ export function CanvasEmptyState() {
           const file = item.getAsFile();
           if (file) {
             event.preventDefault();
-            validateAndSelectFile(file);
+            void validateAndSelectFile(file);
             return;
           }
         }
@@ -142,14 +203,14 @@ export function CanvasEmptyState() {
 
     const file = event.dataTransfer.files?.[0];
     if (file) {
-      validateAndSelectFile(file);
+      void validateAndSelectFile(file);
     }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      validateAndSelectFile(file);
+      void validateAndSelectFile(file);
     }
     event.target.value = "";
   };
@@ -272,7 +333,7 @@ export function CanvasEmptyState() {
                       : "Drop your artwork here"}
                   </p>
                   <p className="text-xs text-studio-muted">
-                    PNG, JPG, WebP, GIF up to 5 MB
+                    PNG, JPG, WebP, GIF · large images can be cropped
                   </p>
                 </div>
 
@@ -328,6 +389,14 @@ export function CanvasEmptyState() {
           </div>
         </div>
       </div>
+
+      <PreCropDialog
+        open={pendingCrop !== null}
+        imageSrc={pendingCrop?.src ?? null}
+        fileName={pendingCrop?.file.name ?? ""}
+        onCancel={closeCropDialog}
+        onConfirm={confirmCrop}
+      />
     </div>
   );
 }
