@@ -18,7 +18,7 @@ import type {
   VectorHierarchical,
   VectorMode,
   VectorSettings,
-} from "@/lib/vectorizer-api";
+} from "@/services";
 import { useVectorStudio } from "./vector-studio-context";
 
 const ENGINE_LABELS: Record<VectorEngine, string> = {

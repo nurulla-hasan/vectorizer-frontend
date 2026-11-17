@@ -152,6 +152,16 @@ export async function getVectorPreview(
   return response.data;
 }
 
+export async function saveSvgEdits(
+  jobId: string,
+  svg: string,
+): Promise<void> {
+  await apiClient(`/vectorizer/${jobId}/svg`, {
+    method: "PUT",
+    body: { svg },
+  });
+}
+
 export interface ExportOptions {
   format?: ExportFormat;
   scale?: 1 | 2 | 4;
@@ -247,14 +257,4 @@ export async function downloadSvg(
   suggestedName = "vectorized.svg",
 ): Promise<void> {
   return downloadVectorFile(jobId, { format: "svg", suggestedName });
-}
-
-export async function loginAccount(
-  email: string,
-  password: string,
-): Promise<void> {
-  await apiClient("/auth/login", {
-    method: "POST",
-    body: { email, password },
-  });
 }

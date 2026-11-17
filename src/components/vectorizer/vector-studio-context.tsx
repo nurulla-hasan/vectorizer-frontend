@@ -1,23 +1,24 @@
 "use client";
 
 import * as React from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { getErrorMessage } from "@/lib/error";
+import { applySvgEdits } from "@/lib/svg-path-edit";
 import { errorToast, successToast } from "@/lib/toast";
 import {
   DEFAULT_VECTOR_SETTINGS,
-  downloadVectorFile,
   type ExportFormat,
   getOriginalImageUrl,
   getVectorPreview,
-  loginAccount,
-  reprocessVectorJob,
-  uploadAndProcessImage,
+  useDownloadVectorFile,
+  useLogin,
+  useProcessImage,
+  useReprocessVectorJob,
+  useSaveSvgEdits,
   VectorizerDownloadError,
   type VectorJobMetadata,
   type VectorPreviewData,
   type VectorSettings,
-} from "@/lib/vectorizer-api";
+} from "@/services";
 import type { CameraState, ViewMode } from "./types";
 
 export const MAX_ZOOM_SCALE = 64;
@@ -41,7 +42,11 @@ const VectorStudioContext =
   React.createContext<VectorStudioContextValue | null>(null);
 
 function useVectorStudioController() {
-  const queryClient = useQueryClient();
+  const { mutateAsync: processImage } = useProcessImage();
+  const { mutateAsync: reprocessJob } = useReprocessVectorJob();
+  const { mutateAsync: saveEdits } = useSaveSvgEdits();
+  const { mutateAsync: downloadFile } = useDownloadVectorFile();
+  const { mutateAsync: login } = useLogin();
 
   const [job, setJob] = React.useState<VectorJobMetadata | null>(null);
   const [preview, setPreview] = React.useState<VectorPreviewData | null>(null);
@@ -60,6 +65,19 @@ function useVectorStudioController() {
   const [viewMode, setViewMode] = React.useState<ViewMode>("single");
   const [loupeEnabled, setLoupeEnabled] = React.useState(true);
   const [fullWireframe, setFullWireframe] = React.useState(false);
+
+  const [editMode, setEditModeState] = React.useState(false);
+  const [selectedPathId, setSelectedPathId] = React.useState<string | null>(
+    null,
+  );
+  const [pathOverrides, setPathOverrides] = React.useState<
+    Record<string, string>
+  >({});
+  const [deletedPathIds, setDeletedPathIds] = React.useState<string[]>([]);
+  const [editHistory, setEditHistory] = React.useState<
+    { pathId: string; d: string; wasDeleted: boolean }[]
+  >([]);
+  const [isSavingEdits, setIsSavingEdits] = React.useState(false);
 
   const [stageSize, setStageSize] = React.useState({ width: 900, height: 560 });
   const [camera, setCamera] = React.useState<CameraState>({
@@ -186,7 +204,7 @@ function useVectorStudioController() {
       setIsProcessing(true);
       setProcessingStage("process");
       try {
-        const createdJob = await uploadAndProcessImage(file, settings);
+        const createdJob = await processImage({ file, settings });
         if (processingTokenRef.current !== token) return;
 
         setProcessingStage("preview");
@@ -199,6 +217,10 @@ function useVectorStudioController() {
         });
         setPreview(previewRes.preview);
         setSettings(createdJob.settings);
+        setPathOverrides({});
+        setDeletedPathIds([]);
+        setEditHistory([]);
+        setSelectedPathId(null);
 
         const initialPaneW = Math.max(1, stageSize.width);
         setCamera(
@@ -228,7 +250,7 @@ function useVectorStudioController() {
         }
       }
     },
-    [computeFitCamera, settings, stageSize.height, stageSize.width],
+    [computeFitCamera, processImage, settings, stageSize.height, stageSize.width],
   );
 
   const cancelProcessing = React.useCallback(() => {
@@ -241,9 +263,13 @@ function useVectorStudioController() {
     if (!job) return;
     setIsReprocessing(true);
     try {
-      const updated = await reprocessVectorJob(job.id, settings);
+      const updated = await reprocessJob({ jobId: job.id, settings });
       setJob(updated);
       setPreview(updated.preview);
+      setPathOverrides({});
+      setDeletedPathIds([]);
+      setEditHistory([]);
+      setSelectedPathId(null);
       successToast(
         "Re-vectorized",
         `${updated.preview.pathCount} paths updated in ${updated.processingMs ?? 0} ms`,
@@ -256,7 +282,185 @@ function useVectorStudioController() {
     } finally {
       setIsReprocessing(false);
     }
-  }, [job, settings]);
+  }, [job, reprocessJob, settings]);
+
+  const setEditMode = React.useCallback((next: boolean) => {
+    setEditModeState(next);
+    if (next) {
+      setViewMode("single");
+      setFullWireframe(false);
+    } else {
+      setSelectedPathId(null);
+    }
+  }, []);
+
+  const getPathD = React.useCallback(
+    (pathId: string): string => {
+      const overridden = pathOverrides[pathId];
+      if (overridden !== undefined) return overridden;
+      return preview?.paths.find((item) => item.id === pathId)?.d ?? "";
+    },
+    [pathOverrides, preview],
+  );
+
+  const setPathD = React.useCallback(
+    (pathId: string, d: string) => {
+      const baseD = preview?.paths.find((item) => item.id === pathId)?.d;
+      setPathOverrides((prev) => {
+        const next = { ...prev };
+        if (baseD !== undefined && d === baseD) {
+          delete next[pathId];
+        } else {
+          next[pathId] = d;
+        }
+        return next;
+      });
+    },
+    [preview],
+  );
+
+  const beginPathEdit = React.useCallback(
+    (pathId: string) => {
+      const current = getPathD(pathId);
+      if (!current) return;
+      setEditHistory((prev) => [
+        ...prev.slice(-49),
+        {
+          pathId,
+          d: current,
+          wasDeleted: deletedPathIds.includes(pathId),
+        },
+      ]);
+    },
+    [deletedPathIds, getPathD],
+  );
+
+  const restoreDeleted = React.useCallback(
+    (pathId: string, deleted: boolean) => {
+      setDeletedPathIds((prev) => {
+        const has = prev.includes(pathId);
+        if (deleted === has) return prev;
+        return deleted ? [...prev, pathId] : prev.filter((id) => id !== pathId);
+      });
+    },
+    [],
+  );
+
+  const undoPathEdit = React.useCallback(() => {
+    if (editHistory.length === 0) return;
+    const last = editHistory[editHistory.length - 1];
+    setEditHistory((prev) => prev.slice(0, -1));
+    const baseD = preview?.paths.find((item) => item.id === last.pathId)?.d;
+    setPathOverrides((prev) => {
+      const next = { ...prev };
+      if (baseD !== undefined && last.d === baseD) {
+        delete next[last.pathId];
+      } else {
+        next[last.pathId] = last.d;
+      }
+      return next;
+    });
+    restoreDeleted(last.pathId, last.wasDeleted);
+    if (last.wasDeleted) {
+      setSelectedPathId((current) =>
+        current === last.pathId ? null : current,
+      );
+    }
+  }, [editHistory, preview, restoreDeleted]);
+
+  const deletePath = React.useCallback(
+    (pathId: string) => {
+      const current = getPathD(pathId);
+      if (!current) return;
+      setEditHistory((prev) => [
+        ...prev.slice(-49),
+        {
+          pathId,
+          d: current,
+          wasDeleted: deletedPathIds.includes(pathId),
+        },
+      ]);
+      setDeletedPathIds((prev) =>
+        prev.includes(pathId) ? prev : [...prev, pathId],
+      );
+      setSelectedPathId((currentId) =>
+        currentId === pathId ? null : currentId,
+      );
+    },
+    [deletedPathIds, getPathD],
+  );
+
+  const discardPathEdits = React.useCallback(() => {
+    setPathOverrides({});
+    setDeletedPathIds([]);
+    setEditHistory([]);
+    setSelectedPathId(null);
+  }, []);
+
+  const buildEditedSvg = React.useCallback(
+    (
+      overrides: Record<string, string>,
+      deleted: readonly string[],
+    ): string => {
+      if (!preview) return "";
+      return applySvgEdits(preview.svg, overrides, deleted);
+    },
+    [preview],
+  );
+
+  const hasUnsavedEdits =
+    Object.keys(pathOverrides).length > 0 || deletedPathIds.length > 0;
+
+  const savePathEdits = React.useCallback(async () => {
+    if (!job || !preview || !hasUnsavedEdits) return;
+    setIsSavingEdits(true);
+    try {
+      const editedSvg = buildEditedSvg(pathOverrides, deletedPathIds);
+      await saveEdits({ jobId: job.id, svg: editedSvg });
+      setPreview((prev) => {
+        if (!prev) return prev;
+        const deleted = new Set(deletedPathIds);
+        // Re-index the surviving paths so their ids keep matching the
+        // <path> element order of the newly saved SVG.
+        const remaining = prev.paths
+          .filter((item) => !deleted.has(item.id))
+          .map((item, position) => ({
+            ...item,
+            id: `p_${position}`,
+            d: pathOverrides[item.id] ?? item.d,
+          }));
+        return {
+          ...prev,
+          svg: editedSvg,
+          paths: remaining,
+          pathCount: remaining.length,
+        };
+      });
+      setPathOverrides({});
+      setDeletedPathIds([]);
+      setEditHistory([]);
+      setSelectedPathId(null);
+      successToast(
+        "Edits saved",
+        "Your manual path fixes are stored in the vector file.",
+      );
+    } catch (error: unknown) {
+      errorToast(
+        "Save failed",
+        getErrorMessage(error, "Could not save your path edits."),
+      );
+    } finally {
+      setIsSavingEdits(false);
+    }
+  }, [
+    buildEditedSvg,
+    deletedPathIds,
+    hasUnsavedEdits,
+    job,
+    pathOverrides,
+    preview,
+    saveEdits,
+  ]);
 
   const handleExport = React.useCallback(
     async (format: ExportFormat, scale: 1 | 2 | 4 = 2) => {
@@ -264,12 +468,14 @@ function useVectorStudioController() {
       setPendingExport({ format, scale });
       setIsDownloading(true);
       try {
-        await downloadVectorFile(job.id, {
-          format,
-          scale,
-          suggestedName: job.originalName,
+        await downloadFile({
+          jobId: job.id,
+          options: {
+            format,
+            scale,
+            suggestedName: job.originalName,
+          },
         });
-        await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
         const label =
           format === "png" ? `PNG (${scale}×)` : format.toUpperCase();
         successToast("Export complete", `${label} downloaded successfully.`);
@@ -291,7 +497,7 @@ function useVectorStudioController() {
         setIsDownloading(false);
       }
     },
-    [job, queryClient],
+    [downloadFile, job],
   );
 
   const handleLoginAndRetryDownload = React.useCallback(
@@ -301,8 +507,7 @@ function useVectorStudioController() {
 
       setIsLoggingIn(true);
       try {
-        await loginAccount(loginEmail, loginPassword);
-        await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
+        await login({ email: loginEmail, password: loginPassword });
         setDownloadModal(null);
         successToast(
           "Signed in",
@@ -318,12 +523,17 @@ function useVectorStudioController() {
         setIsLoggingIn(false);
       }
     },
-    [handleExport, loginEmail, loginPassword, pendingExport, queryClient],
+    [handleExport, login, loginEmail, loginPassword, pendingExport],
   );
 
   const resetStudio = React.useCallback(() => {
     setJob(null);
     setPreview(null);
+    setEditModeState(false);
+    setSelectedPathId(null);
+    setPathOverrides({});
+    setDeletedPathIds([]);
+    setEditHistory([]);
   }, []);
 
   const originalUrl = job ? getOriginalImageUrl(job.id) : "";
@@ -345,6 +555,22 @@ function useVectorStudioController() {
     setLoupeEnabled,
     fullWireframe,
     setFullWireframe,
+    editMode,
+    setEditMode,
+    selectedPathId,
+    setSelectedPathId,
+    pathOverrides,
+    deletedPathIds,
+    getPathD,
+    setPathD,
+    beginPathEdit,
+    deletePath,
+    undoPathEdit,
+    discardPathEdits,
+    savePathEdits,
+    hasUnsavedEdits,
+    canUndoPathEdit: editHistory.length > 0,
+    isSavingEdits,
     camera,
     setCamera,
     minScale,

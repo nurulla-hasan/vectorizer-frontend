@@ -8,6 +8,7 @@ import {
   MAX_ZOOM_SCALE,
   useVectorStudio,
 } from "./vector-studio-context";
+import { PathEditorOverlay } from "./path-editor-overlay";
 import { VectorSvgLayer } from "./vector-svg-layer";
 import { WireframeLoupe } from "./wireframe-loupe";
 
@@ -25,9 +26,24 @@ export function ComparisonStage() {
     viewMode,
     loupeEnabled,
     fullWireframe,
+    editMode,
+    selectedPathId,
+    setSelectedPathId,
+    pathOverrides,
+    deletedPathIds,
+    getPathD,
+    setPathD,
+    beginPathEdit,
+    deletePath,
     setCamera: onCameraChange,
     setStageSize: onStageResize,
   } = useVectorStudio();
+  const effectiveViewMode = editMode ? "single" : viewMode;
+  const selectedPath =
+    editMode && selectedPathId && preview
+      ? preview.paths.find((item) => item.id === selectedPathId)
+      : undefined;
+  const selectedPathD = selectedPathId ? getPathD(selectedPathId) : "";
   const maxScale = MAX_ZOOM_SCALE;
   const previewWidth = preview?.width ?? 1;
   const previewHeight = preview?.height ?? 1;
@@ -145,13 +161,35 @@ export function ComparisonStage() {
     return () => el.removeEventListener("wheel", handleWheel);
   }, [maxScale, minScale, onCameraChange]);
 
+  React.useEffect(() => {
+    if (!editMode) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Delete" && event.key !== "Backspace") return;
+      if (!selectedPathId) return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      event.preventDefault();
+      deletePath(selectedPathId);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [deletePath, editMode, selectedPathId]);
+
   // Draw the original raster beneath the vector layer in curtain mode only.
   React.useEffect(() => {
     const canvas = rasterCanvasRef.current;
     const img = loadedImageRef.current;
     if (
       !canvas ||
-      viewMode !== "curtain" ||
+      effectiveViewMode !== "curtain" ||
       stageSize.width <= 0 ||
       stageSize.height <= 0
     ) {
@@ -183,12 +221,12 @@ export function ComparisonStage() {
     }
   }, [
     camera,
+    effectiveViewMode,
     imageReadyTick,
     previewHeight,
     previewWidth,
     stageSize.height,
     stageSize.width,
-    viewMode,
   ]);
 
   const updatePointerCoords = (clientX: number, clientY: number) => {
@@ -273,7 +311,7 @@ export function ComparisonStage() {
         isGrabbing ? "cursor-grabbing" : "cursor-grab",
       )}
     >
-      {viewMode === "curtain" ? (
+      {effectiveViewMode === "curtain" ? (
         <div className="relative size-full overflow-hidden">
           <canvas
             ref={rasterCanvasRef}
@@ -286,7 +324,12 @@ export function ComparisonStage() {
             style={{ clipPath: "inset(0 0 0 var(--split-pos))" }}
           >
             <div className="absolute top-0 left-0" style={vectorTransformStyle}>
-              <VectorSvgLayer preview={preview} wireframe={fullWireframe} />
+              <VectorSvgLayer
+                preview={preview}
+                wireframe={fullWireframe}
+                pathOverrides={pathOverrides}
+                deletedPathIds={deletedPathIds}
+              />
             </div>
           </div>
 
@@ -332,15 +375,40 @@ export function ComparisonStage() {
       ) : (
         <div className="relative size-full overflow-hidden">
           <div className="absolute top-0 left-0" style={vectorTransformStyle}>
-            <VectorSvgLayer preview={preview} wireframe={fullWireframe} />
+            <VectorSvgLayer
+              preview={preview}
+              wireframe={fullWireframe}
+              pathOverrides={pathOverrides}
+              deletedPathIds={deletedPathIds}
+              editMode={editMode}
+              selectedPathId={selectedPathId}
+              onSelectPath={setSelectedPathId}
+            />
+            {editMode && selectedPath && selectedPathD && (
+              <PathEditorOverlay
+                preview={preview}
+                pathId={selectedPath.id}
+                pathD={selectedPathD}
+                pathTransform={selectedPath.transform}
+                cameraScale={camera.scale}
+                onBeginEdit={beginPathEdit}
+                onPathDChange={setPathD}
+              />
+            )}
           </div>
           <span className="pointer-events-none absolute bottom-3 left-3 rounded-md border border-studio-border bg-studio-panel/90 px-2.5 py-1 text-xs font-medium text-studio-foreground">
-            {fullWireframe ? "Wireframe Outlines" : "Vectorized SVG"}
+            {editMode
+              ? selectedPath
+                ? "Editing path · drag the dots to fix lines · Del to remove"
+                : "Edit mode · click a path to adjust it"
+              : fullWireframe
+                ? "Wireframe Outlines"
+                : "Vectorized SVG"}
           </span>
         </div>
       )}
 
-      {imageLoadError && viewMode === "curtain" && (
+      {imageLoadError && effectiveViewMode === "curtain" && (
         <div
           role="status"
           className="pointer-events-none absolute top-20 left-3 rounded-md border border-studio-border bg-studio-panel/95 px-3 py-1.5 text-xs text-studio-muted"
@@ -350,6 +418,7 @@ export function ComparisonStage() {
       )}
 
       {loupeEnabled &&
+        !editMode &&
         pointer &&
         !imageLoadError &&
         sliderValue >= LOUPE_MIN_ZOOM_PERCENT && (

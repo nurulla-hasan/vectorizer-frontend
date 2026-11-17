@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  Check,
   ChevronDown,
   Download,
   Eye,
@@ -10,11 +11,15 @@ import {
   FileText,
   Image as ImageIcon,
   Maximize2,
+  Pencil,
   Plus,
+  RotateCcw,
   ScanSearch,
   Sliders,
   SlidersHorizontal,
   Square,
+  Trash2,
+  Undo2,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
@@ -51,6 +56,16 @@ export function StudioToolbar({
     loupeEnabled,
     fullWireframe,
     isDownloading,
+    editMode,
+    setEditMode,
+    selectedPathId,
+    deletePath,
+    undoPathEdit,
+    discardPathEdits,
+    savePathEdits,
+    hasUnsavedEdits,
+    canUndoPathEdit,
+    isSavingEdits,
     setViewMode,
     setLoupeEnabled,
     setFullWireframe,
@@ -93,6 +108,7 @@ export function StudioToolbar({
           aria-label="Curtain compare view"
           title="Curtain compare view"
           aria-pressed={viewMode === "curtain"}
+          disabled={editMode}
           onClick={() => setViewMode("curtain")}
         >
           <Sliders className="size-4" />
@@ -103,6 +119,7 @@ export function StudioToolbar({
           aria-label="Single vector view"
           title="Single vector view"
           aria-pressed={viewMode === "single"}
+          disabled={editMode}
           onClick={() => setViewMode("single")}
         >
           <Square className="size-4" />
@@ -116,7 +133,7 @@ export function StudioToolbar({
           aria-label="Toggle wireframe loupe"
           title={`Wireframe loupe (available after ${LOUPE_MIN_ZOOM_PERCENT}% zoom)`}
           aria-pressed={loupeEnabled}
-          disabled={sliderValue < LOUPE_MIN_ZOOM_PERCENT}
+          disabled={editMode || sliderValue < LOUPE_MIN_ZOOM_PERCENT}
           onClick={() => setLoupeEnabled((v) => !v)}
         >
           <ScanSearch className="size-4" />
@@ -127,10 +144,70 @@ export function StudioToolbar({
           aria-label="Toggle full wireframe"
           title="Full wireframe"
           aria-pressed={fullWireframe}
+          disabled={editMode}
           onClick={() => setFullWireframe((v) => !v)}
         >
           <Eye className="size-4" />
         </Button>
+
+        <div className="mx-1 h-6 w-px bg-studio-border" aria-hidden="true" />
+
+        <Button
+          variant={editMode ? "default" : "secondary"}
+          size="default"
+          aria-label="Toggle manual path editing"
+          title="Fix lines manually"
+          aria-pressed={editMode}
+          onClick={() => setEditMode(!editMode)}
+        >
+          <Pencil className="size-4" />
+          Edit lines
+        </Button>
+
+        {(editMode || hasUnsavedEdits) && (
+          <>
+            <Button
+              variant="secondary"
+              size="icon"
+              aria-label="Undo last path edit"
+              title="Undo (last path)"
+              disabled={!canUndoPathEdit}
+              onClick={undoPathEdit}
+            >
+              <Undo2 className="size-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              aria-label="Delete selected path"
+              title="Delete selected path (Del)"
+              disabled={!selectedPathId || isSavingEdits}
+              onClick={() => selectedPathId && deletePath(selectedPathId)}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              aria-label="Discard all manual edits"
+              title="Discard all edits"
+              disabled={!hasUnsavedEdits || isSavingEdits}
+              onClick={discardPathEdits}
+            >
+              <RotateCcw className="size-4" />
+            </Button>
+            <Button
+              size="default"
+              loading={isSavingEdits}
+              loadingText="Saving..."
+              disabled={!hasUnsavedEdits}
+              onClick={() => void savePathEdits()}
+            >
+              <Check className="size-4" />
+              Save edits
+            </Button>
+          </>
+        )}
 
         <div className="mx-1 h-6 w-px bg-studio-border" aria-hidden="true" />
 
@@ -210,6 +287,12 @@ export function StudioToolbar({
                 size="lg"
                 loading={isDownloading}
                 loadingText="Exporting..."
+                disabled={hasUnsavedEdits}
+                title={
+                  hasUnsavedEdits
+                    ? "Save your manual edits before exporting"
+                    : "Export vector file"
+                }
               />
             }
           >

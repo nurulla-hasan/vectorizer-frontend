@@ -4,7 +4,6 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
-import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, ShieldCheck, UserPlus } from "lucide-react";
 import { z } from "zod";
 import { GoogleIcon } from "@/components/common/brand-icons";
@@ -24,14 +23,14 @@ import {
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  getGoogleLoginUrl,
-  registerUser,
-  resendVerificationOtp,
-  verifyEmailOtp,
-} from "@/lib/auth-api";
 import { getErrorMessage } from "@/lib/error";
 import { errorToast, successToast } from "@/lib/toast";
+import {
+  getGoogleLoginUrl,
+  useRegister,
+  useResendVerificationOtp,
+  useVerifyEmailOtp,
+} from "@/services";
 
 const registerSchema = z.object({
   name: z.string().min(2, { error: "Name must be at least 2 characters" }).max(100),
@@ -44,12 +43,13 @@ const registerSchema = z.object({
 
 export default function RegisterPage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
+  const { mutateAsync: registerAccount } = useRegister();
+  const { mutateAsync: verifyOtp, isPending: isVerifying } = useVerifyEmailOtp();
+  const { mutateAsync: resendOtp, isPending: isResending } =
+    useResendVerificationOtp();
 
   const [pendingEmail, setPendingEmail] = React.useState<string | null>(null);
   const [otp, setOtp] = React.useState("");
-  const [isVerifying, setIsVerifying] = React.useState(false);
-  const [isResending, setIsResending] = React.useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -62,7 +62,7 @@ export default function RegisterPage() {
     },
     onSubmit: async ({ value }) => {
       try {
-        const res = await registerUser(value);
+        const res = await registerAccount(value);
         setPendingEmail(res.email);
         successToast(
           "Verification code sent",
@@ -81,10 +81,8 @@ export default function RegisterPage() {
     event.preventDefault();
     if (!pendingEmail || otp.length !== 6) return;
 
-    setIsVerifying(true);
     try {
-      await verifyEmailOtp({ email: pendingEmail, otp });
-      await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
+      await verifyOtp({ email: pendingEmail, otp });
       successToast("Email verified", "Welcome to Vectorizer AI — 5 credits added.");
       router.push("/studio");
     } catch (error: unknown) {
@@ -92,24 +90,19 @@ export default function RegisterPage() {
         "Verification failed",
         getErrorMessage(error, "Invalid or expired verification code."),
       );
-    } finally {
-      setIsVerifying(false);
     }
   };
 
   const handleResend = async () => {
     if (!pendingEmail) return;
-    setIsResending(true);
     try {
-      await resendVerificationOtp({ email: pendingEmail });
+      await resendOtp({ email: pendingEmail });
       successToast("Code resent", `A fresh code was sent to ${pendingEmail}.`);
     } catch (error: unknown) {
       errorToast(
         "Resend failed",
         getErrorMessage(error, "Could not resend verification code."),
       );
-    } finally {
-      setIsResending(false);
     }
   };
 

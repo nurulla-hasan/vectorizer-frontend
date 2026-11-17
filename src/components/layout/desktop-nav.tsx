@@ -3,10 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { isNavLinkActive, NAV_LINKS } from "./nav-items";
+import { isNavLinkActive, type NavLinkItem } from "./nav-items";
 
-export function DesktopNav() {
+interface DesktopNavProps {
+  items: NavLinkItem[];
+  className?: string;
+}
+
+export function DesktopNav({ items, className }: DesktopNavProps) {
   const pathname = usePathname();
   const [hash, setHash] = React.useState("");
 
@@ -19,11 +25,15 @@ export function DesktopNav() {
 
   return (
     <nav
-      aria-label="প্রধান নেভিগেশন"
-      className="hidden items-center gap-1.5 md:flex"
+      aria-label="Main navigation"
+      className={cn(
+        "hidden md:flex items-center justify-center gap-7 lg:gap-8 flex-1 px-4",
+        className,
+      )}
     >
-      {NAV_LINKS.map((link) => {
+      {items.map((link) => {
         const isActive = isNavLinkActive(pathname, link.href, hash);
+
         return (
           <Link
             key={link.href}
@@ -33,16 +43,25 @@ export function DesktopNav() {
               setHash(link.href.startsWith("/#") ? link.href.slice(1) : "")
             }
             className={cn(
-              "rounded-full px-3 py-1.5 text-sm whitespace-nowrap transition-colors",
+              "relative py-2 text-sm font-medium transition-colors cursor-pointer select-none whitespace-nowrap",
               isActive
-                ? "bg-primary/10 font-semibold text-primary"
-                : "font-medium text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                ? "text-foreground font-semibold"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {link.label}
+            <span>{link.name}</span>
+            {isActive && (
+              <motion.div
+                layoutId="navbar-active-indicator"
+                className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-foreground"
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              />
+            )}
           </Link>
         );
       })}
     </nav>
   );
 }
+
+export default DesktopNav;

@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";
 import { successToast } from "@/lib/toast";
+import { AUTH_ME_QUERY_KEY } from "@/services";
 
 export default function AuthSuccessPage() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function AuthSuccessPage() {
   React.useEffect(() => {
     let active = true;
     (async () => {
-      await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
+      await queryClient.invalidateQueries({ queryKey: AUTH_ME_QUERY_KEY });
       if (!active) return;
       successToast("Signed in", "Google account connected.");
       router.replace("/studio");

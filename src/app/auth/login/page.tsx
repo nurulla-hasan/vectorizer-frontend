@@ -4,7 +4,6 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
-import { useQueryClient } from "@tanstack/react-query";
 import { LogIn } from "lucide-react";
 import { z } from "zod";
 import { GoogleIcon } from "@/components/common/brand-icons";
@@ -19,9 +18,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { getGoogleLoginUrl, loginUser } from "@/lib/auth-api";
 import { getErrorMessage } from "@/lib/error";
 import { errorToast, successToast } from "@/lib/toast";
+import { getGoogleLoginUrl, useLogin } from "@/services";
 
 const loginSchema = z.object({
   email: z.email({ error: "Please enter a valid email address" }),
@@ -31,7 +30,7 @@ const loginSchema = z.object({
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const queryClient = useQueryClient();
+  const { mutateAsync: login } = useLogin();
 
   React.useEffect(() => {
     if (searchParams.get("error") === "google_auth_failed") {
@@ -52,8 +51,7 @@ function LoginFormContent() {
     },
     onSubmit: async ({ value }) => {
       try {
-        await loginUser(value);
-        await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
+        await login(value);
         successToast("Welcome back", "Signed in to Vectorizer AI.");
         router.push("/studio");
       } catch (error: unknown) {

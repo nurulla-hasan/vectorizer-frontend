@@ -51,6 +51,7 @@ function VectorStudioWorkspace() {
 
       <Drawer
         swipeDirection="right"
+        modal={false}
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
       >
