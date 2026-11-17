@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from "react";
+import Link from "next/link";
 import {
+  ArrowLeft,
   ChevronDown,
-  Columns2,
   Download,
   Eye,
   FileCode2,
@@ -13,6 +13,7 @@ import {
   Plus,
   ScanSearch,
   Sliders,
+  SlidersHorizontal,
   Square,
   ZoomIn,
   ZoomOut,
@@ -29,9 +30,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
-import { useVectorStudio } from "./vector-studio-context";
+import {
+  LOUPE_MIN_ZOOM_PERCENT,
+  useVectorStudio,
+} from "./vector-studio-context";
 
-export function StudioToolbar() {
+export function StudioToolbar({
+  onOpenSettings,
+  onReset,
+}: {
+  onOpenSettings: () => void;
+  onReset: () => void;
+}) {
   const {
     job,
     preview,
@@ -41,7 +51,6 @@ export function StudioToolbar() {
     loupeEnabled,
     fullWireframe,
     isDownloading,
-    resetStudio,
     setViewMode,
     setLoupeEnabled,
     setFullWireframe,
@@ -55,87 +64,87 @@ export function StudioToolbar() {
   if (!job || !preview) return null;
 
   return (
-    <div
-      role="toolbar"
-      aria-label="Vector workspace controls"
-      className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-studio-border bg-studio-panel px-4 py-3 text-studio-foreground shadow-sm"
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" size="default" onClick={resetStudio}>
-          <Plus className="size-4" />
-          New Image
+    <div className="pointer-events-none absolute inset-x-3 top-3 z-30 flex flex-wrap items-start justify-between gap-2">
+      <div className="pointer-events-auto flex items-center gap-1.5 rounded-xl border border-studio-border bg-studio-panel/90 p-1.5 shadow-lg backdrop-blur">
+        <Button
+          variant="secondary"
+          size="icon"
+          aria-label="Back to site"
+          title="Back to site"
+          render={<Link href="/" />}
+        >
+          <ArrowLeft className="size-4" />
         </Button>
 
-        <Badge variant="secondary" className="max-w-48 truncate">
+        <Badge variant="secondary" className="max-w-40 truncate">
           {job.originalName}
         </Badge>
+
+        <Button variant="secondary" size="default" onClick={onReset}>
+          <Plus className="size-4" />
+          New
+        </Button>
       </div>
 
-      <div
-        className="flex flex-wrap items-center gap-1.5"
-        role="group"
-        aria-label="Comparison view modes"
-      >
+      <div className="pointer-events-auto flex flex-wrap items-center gap-1.5 rounded-xl border border-studio-border bg-studio-panel/90 p-1.5 shadow-lg backdrop-blur">
         <Button
-          variant={viewMode === "split" ? "default" : "ghost"}
-          size="default"
-          aria-pressed={viewMode === "split"}
-          onClick={() => setViewMode("split")}
-        >
-          <Columns2 className="size-4" />
-          Side-by-Side
-        </Button>
-        <Button
-          variant={viewMode === "curtain" ? "default" : "ghost"}
-          size="default"
+          variant={viewMode === "curtain" ? "default" : "secondary"}
+          size="icon"
+          aria-label="Curtain compare view"
+          title="Curtain compare view"
           aria-pressed={viewMode === "curtain"}
           onClick={() => setViewMode("curtain")}
         >
           <Sliders className="size-4" />
-          Curtain
         </Button>
         <Button
-          variant={viewMode === "single" ? "default" : "ghost"}
-          size="default"
+          variant={viewMode === "single" ? "default" : "secondary"}
+          size="icon"
+          aria-label="Single vector view"
+          title="Single vector view"
           aria-pressed={viewMode === "single"}
           onClick={() => setViewMode("single")}
         >
           <Square className="size-4" />
-          Single
         </Button>
 
+        <div className="mx-1 h-6 w-px bg-studio-border" aria-hidden="true" />
+
         <Button
-          variant={loupeEnabled ? "secondary" : "ghost"}
-          size="default"
+          variant={loupeEnabled ? "default" : "secondary"}
+          size="icon"
+          aria-label="Toggle wireframe loupe"
+          title={`Wireframe loupe (available after ${LOUPE_MIN_ZOOM_PERCENT}% zoom)`}
           aria-pressed={loupeEnabled}
+          disabled={sliderValue < LOUPE_MIN_ZOOM_PERCENT}
           onClick={() => setLoupeEnabled((v) => !v)}
         >
           <ScanSearch className="size-4" />
-          Wireframe Loupe
         </Button>
-
         <Button
-          variant={fullWireframe ? "secondary" : "ghost"}
-          size="default"
+          variant={fullWireframe ? "default" : "secondary"}
+          size="icon"
+          aria-label="Toggle full wireframe"
+          title="Full wireframe"
           aria-pressed={fullWireframe}
           onClick={() => setFullWireframe((v) => !v)}
         >
           <Eye className="size-4" />
-          Full Wireframe
         </Button>
-      </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+        <div className="mx-1 h-6 w-px bg-studio-border" aria-hidden="true" />
+
         <Button
-          variant="ghost"
+          variant="secondary"
           size="icon"
           aria-label="Zoom out"
+          title="Zoom out"
           onClick={() => zoomBy(1 / 1.25)}
         >
           <ZoomOut className="size-4" />
         </Button>
 
-        <div className="w-28">
+        <div className="w-20 lg:w-28">
           <Slider
             aria-label="Canvas zoom level"
             min={0}
@@ -147,9 +156,10 @@ export function StudioToolbar() {
         </div>
 
         <Button
-          variant="ghost"
+          variant="secondary"
           size="icon"
           aria-label="Zoom in"
+          title="Zoom in"
           onClick={() => zoomBy(1.25)}
         >
           <ZoomIn className="size-4" />
@@ -157,18 +167,40 @@ export function StudioToolbar() {
 
         <span
           aria-live="polite"
-          className="w-14 text-center font-mono text-xs text-studio-muted"
+          className="w-12 text-center font-mono text-xs text-studio-muted"
         >
-          {camera.scale.toFixed(1)}x
+          {Math.round(camera.scale * 100)}%
         </span>
 
-        <Button variant="outline" size="default" onClick={zoomToFit}>
+        <Button
+          variant="secondary"
+          size="icon"
+          aria-label="Zoom to fit"
+          title="Zoom to fit"
+          onClick={zoomToFit}
+        >
           <Maximize2 className="size-4" />
-          Fit
+        </Button>
+        <Button
+          variant="secondary"
+          size="icon"
+          aria-label="Zoom to 100%"
+          title="Zoom to 100%"
+          onClick={zoom1To1}
+        >
+          1:1
         </Button>
 
-        <Button variant="outline" size="default" onClick={zoom1To1}>
-          1:1
+        <div className="mx-1 h-6 w-px bg-studio-border" aria-hidden="true" />
+
+        <Button
+          variant="secondary"
+          size="icon"
+          aria-label="Open vector settings"
+          title="Vector tuning"
+          onClick={onOpenSettings}
+        >
+          <SlidersHorizontal className="size-4" />
         </Button>
 
         <DropdownMenu>

@@ -1,6 +1,6 @@
-import { Home, type LucideIcon } from "lucide-react";
+import { Home, PenLine, type LucideIcon } from "lucide-react";
 
-export type NavLinkKey = "home";
+export type NavLinkKey = "home" | "studio";
 
 export interface NavLinkItem {
   key: NavLinkKey;
@@ -11,6 +11,7 @@ export interface NavLinkItem {
 
 export const NAV_LINKS: NavLinkItem[] = [
   { key: "home", label: "Home", href: "/", icon: Home },
+  { key: "studio", label: "Studio", href: "/studio", icon: PenLine },
 ];
 
 export function isNavLinkActive(

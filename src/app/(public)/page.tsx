@@ -1,11 +1,17 @@
-import { VectorizerStudio } from "@/components/vectorizer/vectorizer-studio";
-import { CONTAINER_GUTTER, CONTAINER_MAX_WIDTH } from "@/lib/layout";
-import { cn } from "@/lib/utils";
+import { CtaSection } from "@/components/home/cta-section";
+import { FaqSection } from "@/components/home/faq-section";
+import { FeaturesSection } from "@/components/home/features-section";
+import { HeroSection } from "@/components/home/hero-section";
+import { HowItWorksSection } from "@/components/home/how-it-works-section";
 
 export default function HomePage() {
   return (
-    <div className={cn("mx-auto py-8 sm:py-10", CONTAINER_MAX_WIDTH, CONTAINER_GUTTER)}>
-      <VectorizerStudio />
-    </div>
+    <>
+      <HeroSection />
+      <FeaturesSection />
+      <HowItWorksSection />
+      <FaqSection />
+      <CtaSection />
+    </>
   );
 }

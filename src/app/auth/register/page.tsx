@@ -86,7 +86,7 @@ export default function RegisterPage() {
       await verifyEmailOtp({ email: pendingEmail, otp });
       await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
       successToast("Email verified", "Welcome to Vectorizer AI — 5 credits added.");
-      router.push("/");
+      router.push("/studio");
     } catch (error: unknown) {
       errorToast(
         "Verification failed",

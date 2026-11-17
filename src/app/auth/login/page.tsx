@@ -55,7 +55,7 @@ function LoginFormContent() {
         await loginUser(value);
         await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
         successToast("Welcome back", "Signed in to Vectorizer AI.");
-        router.push("/");
+        router.push("/studio");
       } catch (error: unknown) {
         errorToast("Sign in failed", getErrorMessage(error, "Invalid credentials"));
       }

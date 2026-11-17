@@ -3,35 +3,16 @@
 import * as React from "react";
 import { MoveHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MAX_ZOOM_SCALE, useVectorStudio } from "./vector-studio-context";
+import {
+  LOUPE_MIN_ZOOM_PERCENT,
+  MAX_ZOOM_SCALE,
+  useVectorStudio,
+} from "./vector-studio-context";
 import { VectorSvgLayer } from "./vector-svg-layer";
 import { WireframeLoupe } from "./wireframe-loupe";
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
-}
-
-function drawCrosshair(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  fgColor: string,
-  bgColor: string,
-) {
-  const radius = 14;
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = bgColor;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.lineWidth = 1.25;
-  ctx.strokeStyle = fgColor;
-  ctx.stroke();
-  ctx.restore();
 }
 
 export function ComparisonStage() {
@@ -40,6 +21,7 @@ export function ComparisonStage() {
     preview,
     camera,
     minScale,
+    sliderValue,
     viewMode,
     loupeEnabled,
     fullWireframe,
@@ -50,9 +32,7 @@ export function ComparisonStage() {
   const previewWidth = preview?.width ?? 1;
   const previewHeight = preview?.height ?? 1;
   const stageRef = React.useRef<HTMLDivElement>(null);
-  const leftCanvasRef = React.useRef<HTMLCanvasElement>(null);
-  const leftCrosshairRef = React.useRef<HTMLCanvasElement>(null);
-  const rightCrosshairRef = React.useRef<HTMLCanvasElement>(null);
+  const rasterCanvasRef = React.useRef<HTMLCanvasElement>(null);
   const loadedImageRef = React.useRef<HTMLImageElement | null>(null);
   const dragRef = React.useRef<{
     pointerId: number;
@@ -74,6 +54,7 @@ export function ComparisonStage() {
   const [failedOriginalUrl, setFailedOriginalUrl] = React.useState<string | null>(
     null,
   );
+  const fittedPreviewRef = React.useRef<unknown>(null);
   const imageLoadError = failedOriginalUrl === originalUrl;
 
   React.useEffect(() => {
@@ -88,13 +69,33 @@ export function ComparisonStage() {
       };
       setStageSize(next);
       onStageResize(next);
+
+      // The stage only mounts after a job exists, so fit the camera here with
+      // the real pane dimensions instead of the pre-mount placeholder sizes.
+      if (preview && fittedPreviewRef.current !== preview) {
+        fittedPreviewRef.current = preview;
+        const pad = 32;
+        const fitScale = clamp(
+          Math.min(
+            Math.max(1, next.width - pad) / preview.width,
+            Math.max(1, next.height - pad) / preview.height,
+          ),
+          0.1,
+          MAX_ZOOM_SCALE,
+        );
+        onCameraChange({
+          scale: fitScale,
+          dx: (next.width - preview.width * fitScale) / 2,
+          dy: (next.height - preview.height * fitScale) / 2,
+        });
+      }
     };
 
     updateSize();
     const observer = new ResizeObserver(updateSize);
     observer.observe(el);
     return () => observer.disconnect();
-  }, [onStageResize]);
+  }, [onCameraChange, onStageResize, preview]);
 
   React.useEffect(() => {
     let active = true;
@@ -125,12 +126,8 @@ export function ComparisonStage() {
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
       const rect = el.getBoundingClientRect();
-      const paneWidth = viewMode === "split" ? rect.width / 2 : rect.width;
-      const rawX = event.clientX - rect.left;
-      const cursorX =
-        viewMode === "split" && rawX > paneWidth ? rawX - paneWidth : rawX;
+      const cursorX = event.clientX - rect.left;
       const cursorY = event.clientY - rect.top;
-
       const factor = event.deltaY < 0 ? 1.15 : 1 / 1.15;
 
       onCameraChange((prev) => {
@@ -146,15 +143,15 @@ export function ComparisonStage() {
 
     el.addEventListener("wheel", handleWheel, { passive: false });
     return () => el.removeEventListener("wheel", handleWheel);
-  }, [maxScale, minScale, onCameraChange, viewMode]);
+  }, [maxScale, minScale, onCameraChange]);
 
-  // Draw base original raster canvas only when camera/stage/image changes (never on hover pointer moves)
+  // Draw the original raster beneath the vector layer in curtain mode only.
   React.useEffect(() => {
-    const leftCanvas = leftCanvasRef.current;
+    const canvas = rasterCanvasRef.current;
     const img = loadedImageRef.current;
     if (
-      !leftCanvas ||
-      viewMode === "single" ||
+      !canvas ||
+      viewMode !== "curtain" ||
       stageSize.width <= 0 ||
       stageSize.height <= 0
     ) {
@@ -162,14 +159,13 @@ export function ComparisonStage() {
     }
 
     const dpr = window.devicePixelRatio || 1;
-    const paneWidth =
-      viewMode === "split" ? Math.floor(stageSize.width / 2) : stageSize.width;
+    const paneWidth = Math.floor(stageSize.width);
     const paneHeight = stageSize.height;
 
-    leftCanvas.width = Math.max(1, Math.floor(paneWidth * dpr));
-    leftCanvas.height = Math.max(1, Math.floor(paneHeight * dpr));
+    canvas.width = Math.max(1, Math.floor(paneWidth * dpr));
+    canvas.height = Math.max(1, Math.floor(paneHeight * dpr));
 
-    const ctx = leftCanvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -195,56 +191,13 @@ export function ComparisonStage() {
     viewMode,
   ]);
 
-  // Lightweight crosshair overlay canvas updated on pointer moves in split view
-  React.useEffect(() => {
-    const leftOverlay = leftCrosshairRef.current;
-    const rightOverlay = rightCrosshairRef.current;
-    if (
-      viewMode !== "split" ||
-      !leftOverlay ||
-      !rightOverlay ||
-      stageSize.width <= 0 ||
-      stageSize.height <= 0
-    ) {
-      return;
-    }
-
-    const dpr = window.devicePixelRatio || 1;
-    const paneWidth = Math.floor(stageSize.width / 2);
-    const paneHeight = stageSize.height;
-
-    const styles = getComputedStyle(leftOverlay);
-    const traceColor = styles.getPropertyValue("--trace").trim() || "cyan";
-    const bgColor =
-      styles.getPropertyValue("--studio-surface").trim() || "black";
-    const fgColor =
-      styles.getPropertyValue("--studio-foreground").trim() || "white";
-
-    for (const [canvas, strokeColor] of [
-      [leftOverlay, fgColor],
-      [rightOverlay, traceColor],
-    ] as const) {
-      canvas.width = Math.max(1, Math.floor(paneWidth * dpr));
-      canvas.height = Math.max(1, Math.floor(paneHeight * dpr));
-      const ctx = canvas.getContext("2d");
-      if (!ctx) continue;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, paneWidth, paneHeight);
-      if (pointer) {
-        drawCrosshair(ctx, pointer.paneX, pointer.paneY, strokeColor, bgColor);
-      }
-    }
-  }, [pointer, stageSize.height, stageSize.width, viewMode]);
-
   const updatePointerCoords = (clientX: number, clientY: number) => {
     const el = stageRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const x = clientX - rect.left;
     const y = clientY - rect.top;
-    const paneWidth = viewMode === "split" ? rect.width / 2 : rect.width;
-    const paneX = viewMode === "split" && x > paneWidth ? x - paneWidth : x;
-    setPointer({ x, y, paneX, paneY: y });
+    setPointer({ x, y, paneX: x, paneY: y });
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -316,46 +269,14 @@ export function ComparisonStage() {
       }}
       style={{ "--split-pos": `${splitPercent}%` } as React.CSSProperties}
       className={cn(
-        "vk-checkerboard relative h-128 w-full overflow-hidden rounded-2xl border border-studio-border select-none touch-none lg:h-152",
+        "vk-checkerboard relative size-full overflow-hidden select-none touch-none",
         isGrabbing ? "cursor-grabbing" : "cursor-grab",
       )}
     >
-      {viewMode === "split" ? (
-        <div className="grid size-full grid-cols-2 divide-x divide-studio-border">
-          <div className="relative size-full overflow-hidden">
-            <canvas
-              ref={leftCanvasRef}
-              className="block size-full"
-              aria-label="Original raster image canvas"
-            />
-            <canvas
-              ref={leftCrosshairRef}
-              className="pointer-events-none absolute inset-0 block size-full"
-              aria-hidden="true"
-            />
-            <span className="pointer-events-none absolute top-3 left-3 rounded-md border border-studio-border bg-studio-panel/90 px-2.5 py-1 text-xs font-medium text-studio-foreground">
-              Original Pixels
-            </span>
-          </div>
-
-          <div className="relative size-full overflow-hidden">
-            <div className="absolute top-0 left-0" style={vectorTransformStyle}>
-              <VectorSvgLayer preview={preview} wireframe={fullWireframe} />
-            </div>
-            <canvas
-              ref={rightCrosshairRef}
-              className="pointer-events-none absolute inset-0 block size-full"
-              aria-hidden="true"
-            />
-            <span className="pointer-events-none absolute top-3 left-3 rounded-md border border-studio-border bg-studio-panel/90 px-2.5 py-1 text-xs font-medium text-studio-foreground">
-              {fullWireframe ? "Wireframe Outlines" : "Vectorized SVG"}
-            </span>
-          </div>
-        </div>
-      ) : viewMode === "curtain" ? (
+      {viewMode === "curtain" ? (
         <div className="relative size-full overflow-hidden">
           <canvas
-            ref={leftCanvasRef}
+            ref={rasterCanvasRef}
             className="block size-full"
             aria-label="Original raster image canvas"
           />
@@ -399,36 +320,41 @@ export function ComparisonStage() {
             </div>
           </div>
 
-          <span className="pointer-events-none absolute top-3 left-3 rounded-md border border-studio-border bg-studio-panel/90 px-2.5 py-1 text-xs font-medium text-studio-foreground">
-            Pixels
-          </span>
-          <span className="pointer-events-none absolute top-3 right-3 rounded-md border border-studio-border bg-studio-panel/90 px-2.5 py-1 text-xs font-medium text-studio-foreground">
-            Vectors
-          </span>
+          <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-2">
+            <span className="rounded-md border border-studio-border bg-studio-panel/90 px-2.5 py-1 text-xs font-medium text-studio-foreground">
+              Pixels
+            </span>
+            <span className="rounded-md border border-studio-border bg-studio-panel/90 px-2.5 py-1 text-xs font-medium text-studio-foreground">
+              Vectors
+            </span>
+          </div>
         </div>
       ) : (
         <div className="relative size-full overflow-hidden">
           <div className="absolute top-0 left-0" style={vectorTransformStyle}>
             <VectorSvgLayer preview={preview} wireframe={fullWireframe} />
           </div>
-          <span className="pointer-events-none absolute top-3 left-3 rounded-md border border-studio-border bg-studio-panel/90 px-2.5 py-1 text-xs font-medium text-studio-foreground">
+          <span className="pointer-events-none absolute bottom-3 left-3 rounded-md border border-studio-border bg-studio-panel/90 px-2.5 py-1 text-xs font-medium text-studio-foreground">
             {fullWireframe ? "Wireframe Outlines" : "Vectorized SVG"}
           </span>
         </div>
       )}
 
-      {imageLoadError && viewMode !== "single" && (
+      {imageLoadError && viewMode === "curtain" && (
         <div
           role="status"
-          className="pointer-events-none absolute bottom-3 left-3 rounded-md border border-studio-border bg-studio-panel/95 px-3 py-1.5 text-xs text-studio-muted"
+          className="pointer-events-none absolute top-20 left-3 rounded-md border border-studio-border bg-studio-panel/95 px-3 py-1.5 text-xs text-studio-muted"
         >
           Original raster preview could not be loaded.
         </div>
       )}
 
-      {loupeEnabled && pointer && !imageLoadError && (
-        <WireframeLoupe pointer={pointer} />
-      )}
+      {loupeEnabled &&
+        pointer &&
+        !imageLoadError &&
+        sliderValue >= LOUPE_MIN_ZOOM_PERCENT && (
+          <WireframeLoupe pointer={pointer} />
+        )}
     </div>
   );
 }

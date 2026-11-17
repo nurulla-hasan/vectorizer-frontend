@@ -170,6 +170,19 @@
 }
 
 @layer utilities {
+  @keyframes vk-progress-indeterminate {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(250%);
+    }
+  }
+
+  .vk-progress-indeterminate {
+    animation: vk-progress-indeterminate 1.4s ease-in-out infinite;
+  }
+
   .vk-blueprint-grid {
     background-color: var(--studio-surface);
     background-image:

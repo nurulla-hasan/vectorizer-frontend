@@ -17,7 +17,7 @@ export default function AuthSuccessPage() {
       await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
       if (!active) return;
       successToast("Signed in", "Google account connected.");
-      router.replace("/");
+      router.replace("/studio");
     })();
 
     return () => {

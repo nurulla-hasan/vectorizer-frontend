@@ -21,6 +21,8 @@ import {
 import type { CameraState, ViewMode } from "./types";
 
 export const MAX_ZOOM_SCALE = 64;
+// Loupe stays hidden until the zoom slider passes this percentage.
+export const LOUPE_MIN_ZOOM_PERCENT = 35;
 
 function clamp(v: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, v));
@@ -48,10 +50,14 @@ function useVectorStudioController() {
   );
 
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [processingStage, setProcessingStage] = React.useState<
+    "process" | "preview" | null
+  >(null);
+  const processingTokenRef = React.useRef(0);
   const [isReprocessing, setIsReprocessing] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
 
-  const [viewMode, setViewMode] = React.useState<ViewMode>("split");
+  const [viewMode, setViewMode] = React.useState<ViewMode>("single");
   const [loupeEnabled, setLoupeEnabled] = React.useState(true);
   const [fullWireframe, setFullWireframe] = React.useState(false);
 
@@ -71,8 +77,7 @@ function useVectorStudioController() {
   const [loginPassword, setLoginPassword] = React.useState("");
   const [isLoggingIn, setIsLoggingIn] = React.useState(false);
 
-  const paneWidth =
-    viewMode === "split" ? Math.max(1, stageSize.width / 2) : stageSize.width;
+  const paneWidth = Math.max(1, stageSize.width);
   const paneHeight = Math.max(1, stageSize.height);
 
   const computeFitCamera = React.useCallback(
@@ -177,10 +182,16 @@ function useVectorStudioController() {
 
   const handleFileSelected = React.useCallback(
     async (file: File) => {
+      const token = ++processingTokenRef.current;
       setIsProcessing(true);
+      setProcessingStage("process");
       try {
         const createdJob = await uploadAndProcessImage(file, settings);
+        if (processingTokenRef.current !== token) return;
+
+        setProcessingStage("preview");
         const previewRes = await getVectorPreview(createdJob.id);
+        if (processingTokenRef.current !== token) return;
 
         setJob({
           ...createdJob,
@@ -189,10 +200,7 @@ function useVectorStudioController() {
         setPreview(previewRes.preview);
         setSettings(createdJob.settings);
 
-        const initialPaneW =
-          viewMode === "split"
-            ? Math.max(1, stageSize.width / 2)
-            : stageSize.width;
+        const initialPaneW = Math.max(1, stageSize.width);
         setCamera(
           computeFitCamera(
             previewRes.preview.width,
@@ -207,16 +215,27 @@ function useVectorStudioController() {
           `${previewRes.preview.pathCount} paths traced in ${createdJob.processingMs ?? 0} ms`,
         );
       } catch (error: unknown) {
-        errorToast(
-          "Vectorization failed",
-          getErrorMessage(error, "Could not process the uploaded image."),
-        );
+        if (processingTokenRef.current === token) {
+          errorToast(
+            "Vectorization failed",
+            getErrorMessage(error, "Could not process the uploaded image."),
+          );
+        }
       } finally {
-        setIsProcessing(false);
+        if (processingTokenRef.current === token) {
+          setIsProcessing(false);
+          setProcessingStage(null);
+        }
       }
     },
-    [computeFitCamera, settings, stageSize.height, stageSize.width, viewMode],
+    [computeFitCamera, settings, stageSize.height, stageSize.width],
   );
+
+  const cancelProcessing = React.useCallback(() => {
+    processingTokenRef.current += 1;
+    setIsProcessing(false);
+    setProcessingStage(null);
+  }, []);
 
   const handleReprocess = React.useCallback(async () => {
     if (!job) return;
@@ -316,6 +335,8 @@ function useVectorStudioController() {
     settings,
     setSettings,
     isProcessing,
+    processingStage,
+    cancelProcessing,
     isReprocessing,
     isDownloading,
     viewMode,

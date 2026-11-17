@@ -95,7 +95,7 @@ export default function AuthLayout({
               variant="outline"
               size="default"
               className="hidden sm:inline-flex"
-              render={<Link href="/" />}
+              render={<Link href="/studio" />}
             >
               Back to studio
             </Button>

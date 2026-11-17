@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw, SlidersHorizontal } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -65,24 +65,16 @@ export function TuningSidebar() {
   };
 
   return (
-    <aside className="flex w-full shrink-0 flex-col gap-5 rounded-2xl border border-studio-border bg-studio-panel p-5 text-studio-foreground lg:w-80">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="size-4 text-primary" />
-          <h2 className="text-sm font-semibold">Vector Tuning</h2>
-        </div>
-        <div className="flex items-center gap-1.5">
-          {engine && (
-            <Badge
-              variant={engine === "imagetracerjs" ? "outline" : "default"}
-            >
-              {ENGINE_LABELS[engine] ?? "ImageTracer"}
-            </Badge>
-          )}
-          {processingMs !== null && (
-            <Badge variant="secondary">{processingMs} ms</Badge>
-          )}
-        </div>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-1.5">
+        {engine && (
+          <Badge variant={engine === "imagetracerjs" ? "outline" : "default"}>
+            {ENGINE_LABELS[engine] ?? "ImageTracer"}
+          </Badge>
+        )}
+        {processingMs !== null && (
+          <Badge variant="secondary">{processingMs} ms</Badge>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-2 rounded-xl border border-studio-border bg-studio-surface p-3 text-xs">
@@ -273,6 +265,6 @@ export function TuningSidebar() {
           </ul>
         </div>
       )}
-    </aside>
+    </div>
   );
 }

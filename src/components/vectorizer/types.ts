@@ -1,4 +1,4 @@
-export type ViewMode = "split" | "curtain" | "single";
+export type ViewMode = "curtain" | "single";
 
 export interface CameraState {
   scale: number;
@@ -35,24 +35,21 @@ export const SAMPLE_PRESETS: SamplePreset[] = [
 ];
 
 /**
- * Generate a crisp synthetic raster PNG File in-browser for instant sample testing.
+ * Draws a sample preset onto any 2D canvas context. Shared by the generated
+ * sample file and the preview thumbnails in the empty state.
  */
-export async function createSampleImageFile(presetId: string): Promise<File> {
-  const size = 512;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    throw new Error("Canvas 2D context is unavailable");
-  }
-
+export function drawSamplePreset(
+  ctx: CanvasRenderingContext2D,
+  size: number,
+  presetId: string,
+) {
   ctx.clearRect(0, 0, size, size);
+  ctx.save();
+  ctx.scale(size / 512, size / 512);
 
   if (presetId === "geometric-fox") {
     ctx.fillStyle = "#1e293b";
-    ctx.fillRect(0, 0, size, size);
+    ctx.fillRect(0, 0, 512, 512);
 
     ctx.fillStyle = "#f97316";
     ctx.beginPath();
@@ -89,7 +86,7 @@ export async function createSampleImageFile(presetId: string): Promise<File> {
     ctx.fill();
   } else if (presetId === "studio-crest") {
     ctx.fillStyle = "#0f172a";
-    ctx.fillRect(0, 0, size, size);
+    ctx.fillRect(0, 0, 512, 512);
 
     ctx.fillStyle = "#4f46e5";
     ctx.beginPath();
@@ -114,7 +111,7 @@ export async function createSampleImageFile(presetId: string): Promise<File> {
   } else {
     // mountain-badge
     ctx.fillStyle = "#0f172a";
-    ctx.fillRect(0, 0, size, size);
+    ctx.fillRect(0, 0, 512, 512);
 
     ctx.fillStyle = "#38bdf8";
     ctx.beginPath();
@@ -152,6 +149,25 @@ export async function createSampleImageFile(presetId: string): Promise<File> {
     ctx.closePath();
     ctx.fill();
   }
+
+  ctx.restore();
+}
+
+/**
+ * Generate a crisp synthetic raster PNG File in-browser for instant sample testing.
+ */
+export async function createSampleImageFile(presetId: string): Promise<File> {
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    throw new Error("Canvas 2D context is unavailable");
+  }
+
+  drawSamplePreset(ctx, size, presetId);
 
   const blob = await new Promise<Blob | null>((resolve) =>
     canvas.toBlob(resolve, "image/png"),
