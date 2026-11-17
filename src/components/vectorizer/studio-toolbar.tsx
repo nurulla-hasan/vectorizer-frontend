@@ -12,8 +12,10 @@ import {
   Image as ImageIcon,
   Maximize2,
   Pencil,
+  PenTool,
   Plus,
   RotateCcw,
+  Ruler,
   ScanSearch,
   Scissors,
   Sliders,
@@ -348,6 +350,14 @@ export function StudioToolbar({
               <DropdownMenuItem onClick={() => handleExport("pdf")}>
                 <FileText className="size-4" />
                 PDF (Print-Ready Vector)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("eps")}>
+                <PenTool className="size-4" />
+                EPS (Legacy Print)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("dxf")}>
+                <Ruler className="size-4" />
+                DXF (CAD &amp; CNC)
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

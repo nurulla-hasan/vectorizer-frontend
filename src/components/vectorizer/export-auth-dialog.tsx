@@ -46,8 +46,8 @@ export function ExportAuthDialog() {
               <DialogTitle>Sign in to export</DialogTitle>
               <DialogDescription>
                 Interactive previews are free for everyone. Sign in to export
-                clean SVG, high-res PNG, and print-ready PDF files (Free
-                accounts include starter credits).
+                clean SVG, high-res PNG, print-ready PDF, EPS, and DXF files
+                (Free accounts include starter credits).
               </DialogDescription>
             </DialogHeader>
 
@@ -123,7 +123,7 @@ export function ExportAuthDialog() {
               <DialogTitle>Out of export credits</DialogTitle>
               <DialogDescription>
                 Your Free plan credits have been used. Upgrade to PRO for
-                unlimited high-precision SVG, PNG, and PDF exports.
+                unlimited high-precision SVG, PNG, PDF, EPS, and DXF exports.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

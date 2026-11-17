@@ -24,7 +24,7 @@ const HIGHLIGHTS: { icon: LucideIcon; title: string; description: string }[] = [
     icon: Layers,
     title: "Interactive Studio Editing",
     description:
-      "Inspect paths under the magnifier loupe, toggle wireframe overlays, tweak anchor points directly, and export clean SVG, PNG, or PDF.",
+      "Inspect paths under the magnifier loupe, toggle wireframe overlays, tweak anchor points directly, and export clean SVG, PNG, PDF, EPS, or DXF.",
   },
 ];
 

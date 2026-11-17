@@ -70,8 +70,8 @@ function LoginFormContent() {
           Welcome back
         </h1>
         <p className="text-sm text-muted-foreground">
-          Sign in to access your vector credits and export clean SVG, PNG, and
-          PDF files.
+          Sign in to access your vector credits and export clean SVG, PNG,
+          PDF, EPS, and DXF files.
         </p>
       </CardHeader>
 

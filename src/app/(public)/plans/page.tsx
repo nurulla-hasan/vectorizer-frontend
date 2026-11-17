@@ -47,7 +47,7 @@ const PLAN_COPY: Record<
     features: [
       "Full Studio preview & magnifier loupe",
       "Manual anchor & path editing",
-      "Clean SVG, PNG, and PDF downloads",
+      "Clean SVG, PNG, PDF, EPS, and DXF downloads",
     ],
   },
   PRO: {
@@ -56,7 +56,7 @@ const PLAN_COPY: Record<
     badge: "Most popular",
     highlighted: true,
     features: [
-      "Unlimited SVG, PNG (up to 4x), and PDF exports",
+      "Unlimited SVG, PNG (up to 4x), PDF, EPS, and DXF exports",
       "AI 4x Super-Resolution + Potrace / Rust VTracer",
       "Full color palette & curve tuning controls",
       "Priority processing queue",
