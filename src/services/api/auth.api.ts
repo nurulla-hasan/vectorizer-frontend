@@ -20,9 +20,13 @@ interface ApiEnvelope<T> {
   data: T;
 }
 
-export async function getMe(): Promise<AuthUser | null> {
+export const AUTH_ME_QUERY_KEY = ["auth-me"] as const;
+
+export async function getMe(cookieHeader?: string): Promise<AuthUser | null> {
   try {
-    const res = await apiClient<ApiEnvelope<{ user: AuthUser }>>("/auth/me");
+    const res = await apiClient<ApiEnvelope<{ user: AuthUser }>>("/auth/me", {
+      ...(cookieHeader ? { headers: { cookie: cookieHeader } } : {}),
+    });
     return res.data.user;
   } catch {
     return null;

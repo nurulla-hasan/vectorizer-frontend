@@ -1,6 +1,9 @@
+import Link from "next/link";
+import { ArrowRight, LifeBuoy } from "lucide-react";
 import { FaqList, type FaqListItem } from "@/components/common/faq-list";
-import { SectionHeading } from "@/components/common/section-heading";
-import { SectionWrapper } from "@/components/common/section-wrapper";
+import { Badge } from "@/components/ui/badge";
+import { CONTAINER_GUTTER, CONTAINER_MAX_WIDTH } from "@/lib/layout";
+import { cn } from "@/lib/utils";
 
 const FAQ_ITEMS: FaqListItem[] = [
   {
@@ -37,17 +40,57 @@ const FAQ_ITEMS: FaqListItem[] = [
 
 export function FaqSection() {
   return (
-    <SectionWrapper id="faq" bg="muted" padding="lg">
-      <SectionHeading
-        badge="FAQ"
-        title="Questions, answered"
-        description="Quick answers about uploads, exports, and credits."
-        descriptionClassName="mt-3"
+    <section id="faq" className="relative overflow-hidden py-16 sm:py-24">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-muted/40"
+      />
+      <div
+        aria-hidden="true"
+        className="vk-dot-grid vk-dot-fade pointer-events-none absolute inset-0 opacity-30"
       />
 
-      <div className="mx-auto mt-8 max-w-3xl">
-        <FaqList items={FAQ_ITEMS} />
+      <div
+        className={cn(
+          "relative mx-auto w-full",
+          CONTAINER_MAX_WIDTH,
+          CONTAINER_GUTTER,
+        )}
+      >
+        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+          <div className="self-start lg:sticky lg:top-24">
+            <Badge variant="secondary">FAQ</Badge>
+            <h2 className="mt-4 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Questions, answered
+            </h2>
+            <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground sm:text-base">
+              Quick answers about uploads, exports, and credits.
+            </p>
+
+            <div className="mt-7 max-w-sm rounded-2xl border border-border/70 bg-card/80 p-5">
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <LifeBuoy className="size-4 text-primary" />
+                Still curious?
+              </div>
+              <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+                The fastest answer is trying it — the studio is open and needs
+                no account.
+              </p>
+              <Link
+                href="/studio"
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+              >
+                Open the studio
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border/70 bg-card/80 p-2 shadow-sm sm:p-4">
+            <FaqList items={FAQ_ITEMS} />
+          </div>
+        </div>
       </div>
-    </SectionWrapper>
+    </section>
   );
 }

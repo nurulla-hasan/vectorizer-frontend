@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, LogIn, LogOut, PenLine } from "lucide-react";
+import { ArrowRight, LogOut, PenLine } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,10 +46,7 @@ export function NavbarUserMenu({ className }: { className?: string }) {
           }
         >
           <Avatar className="size-8">
-            <AvatarImage
-              src={user.imageUrl}
-              alt={user.name || "User Avatar"}
-            />
+            <AvatarImage src={user.imageUrl} alt={user.name || "User Avatar"} />
             <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
@@ -89,16 +86,10 @@ export function NavbarUserMenu({ className }: { className?: string }) {
   }
 
   return (
-    <div className="hidden sm:flex items-center gap-2">
-      <Button variant="ghost" render={<Link href="/auth/login" />}>
-        <LogIn className="size-4" />
-        <span>Log in</span>
-      </Button>
-      <Button render={<Link href="/auth/register" />}>
-        <span>Get Started</span>
-        <ArrowRight className="size-4" />
-      </Button>
-    </div>
+    <Button render={<Link href="/auth/register" />}>
+      <span>Get Started</span>
+      <ArrowRight className="size-4" />
+    </Button>
   );
 }
 

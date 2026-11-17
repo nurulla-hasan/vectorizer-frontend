@@ -1,9 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { Home, PenLine, type LucideIcon } from "lucide-react";
+import {
+  CreditCard,
+  Home,
+  Info,
+  Mail,
+  PenLine,
+  type LucideIcon,
+} from "lucide-react";
 
-export type NavItemKey = "home" | "studio";
+export type NavItemKey = "home" | "studio" | "plans" | "about" | "contact";
 
 export interface NavItemConfig {
   key: NavItemKey;
@@ -24,6 +31,9 @@ export interface NavLinkItem {
 export const NAV_ITEMS: readonly NavItemConfig[] = [
   { key: "home", label: "Home", href: "/", icon: Home },
   { key: "studio", label: "Studio", href: "/studio", icon: PenLine },
+  { key: "plans", label: "Plans", href: "/plans", icon: CreditCard },
+  { key: "about", label: "About", href: "/about", icon: Info },
+  { key: "contact", label: "Contact", href: "/contact", icon: Mail },
 ] as const;
 
 export function isNavLinkActive(

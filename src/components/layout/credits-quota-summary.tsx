@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useGetMe } from "@/services";
 
-const FREE_CREDIT_CAP = 10;
+const FREE_CREDIT_CAP = 5;
 
 /** Compact plan & credits quota readout for navbar account menus. */
 export function CreditsQuotaSummary({ className }: { className?: string }) {
@@ -22,7 +22,7 @@ export function CreditsQuotaSummary({ className }: { className?: string }) {
   const isUnlimited = user.plan !== "FREE";
   const remaining = Math.max(0, user.credits);
   const exhausted = !isUnlimited && remaining <= 0;
-  const nearCap = !isUnlimited && !exhausted && remaining <= 2;
+  const nearCap = !isUnlimited && !exhausted && remaining <= 1;
   const percentage = isUnlimited
     ? 100
     : Math.min(100, (remaining / FREE_CREDIT_CAP) * 100);

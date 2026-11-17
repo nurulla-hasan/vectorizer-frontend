@@ -2,6 +2,7 @@
 
 import { Logo } from "@/components/common/logo";
 import { ThemeToggle } from "@/components/common/theme-toggle";
+// import { useHasMounted } from "@/hooks";
 import { CONTAINER_GUTTER, CONTAINER_MAX_WIDTH } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 import { DesktopNav } from "./desktop-nav";
@@ -15,6 +16,7 @@ interface NavbarProps {
 
 export function Navbar({ className }: NavbarProps) {
   const navLinks = useNavLinks();
+  // const hasMounted = useHasMounted();
 
   return (
     <header
@@ -41,8 +43,8 @@ export function Navbar({ className }: NavbarProps) {
         {/* Right: Controls & User Auth Actions */}
         <div className="flex shrink-0 items-center gap-2">
           <ThemeToggle size="icon" className="hidden md:inline-flex" />
-          <NavbarUserMenu />
 
+            <NavbarUserMenu />
           {/* Mobile Navigation Drawer */}
           <MobileNav items={navLinks} />
         </div>

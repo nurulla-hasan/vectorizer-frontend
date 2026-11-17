@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  AUTH_ME_QUERY_KEY,
   type AuthUser,
   getMe,
   loginUser,
@@ -13,7 +14,7 @@ import {
 import { getErrorMessage } from "@/lib/error";
 import { errorToast, successToast } from "@/lib/toast";
 
-export const AUTH_ME_QUERY_KEY = ["auth-me"] as const;
+export { AUTH_ME_QUERY_KEY };
 
 /**
  * Fetch the currently authenticated user's session & credits.
@@ -21,7 +22,7 @@ export const AUTH_ME_QUERY_KEY = ["auth-me"] as const;
 export function useGetMe() {
   return useQuery<AuthUser | null>({
     queryKey: AUTH_ME_QUERY_KEY,
-    queryFn: getMe,
+    queryFn: () => getMe(),
     retry: false,
     staleTime: 30_000,
   });
