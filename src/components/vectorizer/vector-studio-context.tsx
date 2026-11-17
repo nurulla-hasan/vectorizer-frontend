@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { getErrorMessage } from "@/lib/error";
-import { applySvgEdits } from "@/lib/svg-path-edit";
-import { errorToast, successToast } from "@/lib/toast";
+import { applySvgEdits, getPathBounds } from "@/lib/svg-path-edit";
+import { errorToast, infoToast, successToast } from "@/lib/toast";
 import {
   DEFAULT_VECTOR_SETTINGS,
   type ExportFormat,
@@ -33,6 +33,16 @@ export interface PendingExportRequest {
   format: ExportFormat;
   scale: 1 | 2 | 4;
 }
+
+interface PathEditChange {
+  pathId: string;
+  /** Absent when the undo step does not touch this path's override. */
+  d?: string;
+  wasDeleted: boolean;
+}
+
+// Each entry is one undo step; bulk edits (fragment cleanup) share a batch.
+type PathEditBatch = PathEditChange[];
 
 export type VectorStudioContextValue = ReturnType<
   typeof useVectorStudioController
@@ -74,9 +84,7 @@ function useVectorStudioController() {
     Record<string, string>
   >({});
   const [deletedPathIds, setDeletedPathIds] = React.useState<string[]>([]);
-  const [editHistory, setEditHistory] = React.useState<
-    { pathId: string; d: string; wasDeleted: boolean }[]
-  >([]);
+  const [editHistory, setEditHistory] = React.useState<PathEditBatch[]>([]);
   const [isSavingEdits, setIsSavingEdits] = React.useState(false);
 
   const [stageSize, setStageSize] = React.useState({ width: 900, height: 560 });
@@ -325,48 +333,56 @@ function useVectorStudioController() {
       if (!current) return;
       setEditHistory((prev) => [
         ...prev.slice(-49),
-        {
-          pathId,
-          d: current,
-          wasDeleted: deletedPathIds.includes(pathId),
-        },
+        [
+          {
+            pathId,
+            d: current,
+            wasDeleted: deletedPathIds.includes(pathId),
+          },
+        ],
       ]);
     },
     [deletedPathIds, getPathD],
   );
 
-  const restoreDeleted = React.useCallback(
-    (pathId: string, deleted: boolean) => {
-      setDeletedPathIds((prev) => {
-        const has = prev.includes(pathId);
-        if (deleted === has) return prev;
-        return deleted ? [...prev, pathId] : prev.filter((id) => id !== pathId);
-      });
-    },
-    [],
-  );
-
   const undoPathEdit = React.useCallback(() => {
     if (editHistory.length === 0) return;
-    const last = editHistory[editHistory.length - 1];
+    const batch = editHistory[editHistory.length - 1];
     setEditHistory((prev) => prev.slice(0, -1));
-    const baseD = preview?.paths.find((item) => item.id === last.pathId)?.d;
     setPathOverrides((prev) => {
       const next = { ...prev };
-      if (baseD !== undefined && last.d === baseD) {
-        delete next[last.pathId];
-      } else {
-        next[last.pathId] = last.d;
+      for (const change of batch) {
+        if (change.d === undefined) continue;
+        const baseD = preview?.paths.find(
+          (item) => item.id === change.pathId,
+        )?.d;
+        if (baseD !== undefined && change.d === baseD) {
+          delete next[change.pathId];
+        } else {
+          next[change.pathId] = change.d;
+        }
       }
       return next;
     });
-    restoreDeleted(last.pathId, last.wasDeleted);
-    if (last.wasDeleted) {
+    setDeletedPathIds((prev) => {
+      const ids = new Set(prev);
+      for (const change of batch) {
+        if (change.wasDeleted) ids.add(change.pathId);
+        else ids.delete(change.pathId);
+      }
+      return ids.size === prev.length && prev.every((id) => ids.has(id))
+        ? prev
+        : Array.from(ids);
+    });
+    const reDeleted = new Set(
+      batch.filter((change) => change.wasDeleted).map((change) => change.pathId),
+    );
+    if (reDeleted.size > 0) {
       setSelectedPathId((current) =>
-        current === last.pathId ? null : current,
+        current && reDeleted.has(current) ? null : current,
       );
     }
-  }, [editHistory, preview, restoreDeleted]);
+  }, [editHistory, preview]);
 
   const deletePath = React.useCallback(
     (pathId: string) => {
@@ -374,11 +390,13 @@ function useVectorStudioController() {
       if (!current) return;
       setEditHistory((prev) => [
         ...prev.slice(-49),
-        {
-          pathId,
-          d: current,
-          wasDeleted: deletedPathIds.includes(pathId),
-        },
+        [
+          {
+            pathId,
+            d: current,
+            wasDeleted: deletedPathIds.includes(pathId),
+          },
+        ],
       ]);
       setDeletedPathIds((prev) =>
         prev.includes(pathId) ? prev : [...prev, pathId],
@@ -388,6 +406,43 @@ function useVectorStudioController() {
       );
     },
     [deletedPathIds, getPathD],
+  );
+
+  const removeFragments = React.useCallback(
+    (thresholdPx: number): number => {
+      if (!preview) return 0;
+      const deleted = new Set(deletedPathIds);
+      const batch: PathEditChange[] = [];
+      for (const item of preview.paths) {
+        if (deleted.has(item.id) || item.id === selectedPathId) continue;
+        const d = pathOverrides[item.id] ?? item.d;
+        const bounds = getPathBounds(d, item.transform);
+        if (!bounds) continue;
+        if (Math.max(bounds.width, bounds.height) > thresholdPx) continue;
+        batch.push({
+          pathId: item.id,
+          ...(pathOverrides[item.id] === undefined ? {} : { d }),
+          wasDeleted: false,
+        });
+        deleted.add(item.id);
+      }
+      if (batch.length === 0) {
+        infoToast(
+          "No fragments found",
+          `Nothing else is up to ${thresholdPx} px.`,
+        );
+        return 0;
+      }
+
+      setEditHistory((prev) => [...prev.slice(-49), batch]);
+      setDeletedPathIds(Array.from(deleted));
+      successToast(
+        `Removed ${batch.length} fragment${batch.length === 1 ? "" : "s"}`,
+        `Paths up to ${thresholdPx} px. Undo brings them back.`,
+      );
+      return batch.length;
+    },
+    [deletedPathIds, pathOverrides, preview, selectedPathId],
   );
 
   const discardPathEdits = React.useCallback(() => {
@@ -565,6 +620,7 @@ function useVectorStudioController() {
     setPathD,
     beginPathEdit,
     deletePath,
+    removeFragments,
     undoPathEdit,
     discardPathEdits,
     savePathEdits,

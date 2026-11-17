@@ -15,6 +15,7 @@ import {
   Plus,
   RotateCcw,
   ScanSearch,
+  Scissors,
   Sliders,
   SlidersHorizontal,
   Square,
@@ -60,6 +61,7 @@ export function StudioToolbar({
     setEditMode,
     selectedPathId,
     deletePath,
+    removeFragments,
     undoPathEdit,
     discardPathEdits,
     savePathEdits,
@@ -186,6 +188,41 @@ export function StudioToolbar({
             >
               <Trash2 className="size-4" />
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    aria-label="Remove tiny fragments"
+                    title="Remove tiny fragments in bulk"
+                    disabled={isSavingEdits}
+                  />
+                }
+              >
+                <Scissors className="size-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>
+                    Remove paths up to
+                  </DropdownMenuLabel>
+                  {[8, 16, 32, 64].map((px) => (
+                    <DropdownMenuItem
+                      key={px}
+                      onClick={() => removeFragments(px)}
+                    >
+                      <Scissors className="size-4" />
+                      {px} px bits
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                  Selected path is kept · one Undo restores all
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               variant="secondary"
               size="icon"
