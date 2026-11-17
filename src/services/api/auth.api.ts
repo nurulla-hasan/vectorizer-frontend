@@ -1,6 +1,6 @@
 import { API_BASE_URL, apiClient } from "@/lib/api-client";
 
-export type UserPlan = "FREE" | "PRO" | "API";
+export type UserPlan = "FREE" | "PRO";
 
 export interface AuthUser {
   id: string;
@@ -9,6 +9,8 @@ export interface AuthUser {
   role: "USER" | "ADMIN";
   plan: UserPlan;
   credits: number;
+  creditsLimit?: number | null;
+  unlimited?: boolean;
   imageUrl?: string;
   emailVerified: boolean;
 }

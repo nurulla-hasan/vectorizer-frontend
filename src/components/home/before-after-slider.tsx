@@ -68,11 +68,11 @@ export function BeforeAfterSlider() {
         className="absolute -inset-5 -z-10 rounded-[2rem] bg-trace/10 blur-3xl"
       />
 
-      <div className="overflow-hidden rounded-2xl border border-studio-border bg-studio-surface shadow-[0_40px_120px_-40px_rgba(2,6,23,0.8)]">
+      <div className="overflow-hidden rounded-2xl border border-studio-border bg-studio-surface shadow-[0_40px_120px_-40px_color-mix(in_oklch,var(--shadow-color),transparent_82%)]">
         <div className="flex items-center gap-2 border-b border-studio-border/70 px-3 py-2.5">
-          <span className="size-2 rounded-full bg-[#ff5f57]/80" />
-          <span className="size-2 rounded-full bg-[#febc2e]/80" />
-          <span className="size-2 rounded-full bg-[#28c840]/80" />
+          <span className="size-2 rounded-full bg-dot-close/80" />
+          <span className="size-2 rounded-full bg-dot-min/80" />
+          <span className="size-2 rounded-full bg-dot-max/80" />
           <span className="mx-2 h-4 w-px bg-studio-border/70" />
           <span className="truncate font-mono text-[11px] text-studio-muted">
             raster → vector
@@ -112,7 +112,7 @@ export function BeforeAfterSlider() {
           </div>
 
           <div
-            className="absolute inset-y-0 z-20 w-px bg-trace/80 shadow-[0_0_18px_rgba(34,211,238,0.55)]"
+            className="absolute inset-y-0 z-20 w-px bg-trace/80 shadow-[0_0_18px_color-mix(in_oklch,var(--trace),transparent_45%)]"
             style={{ left: `${position}%` }}
           >
             <div
@@ -125,7 +125,7 @@ export function BeforeAfterSlider() {
               aria-valuenow={percent}
               aria-valuetext={`${percent}% raster`}
               onKeyDown={handleKeyDown}
-              className="absolute top-1/2 left-1/2 flex size-9 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border border-trace/50 bg-studio-surface text-trace shadow-[0_0_28px_rgba(34,211,238,0.4)] outline-none focus-visible:ring-2 focus-visible:ring-trace/60"
+              className="absolute top-1/2 left-1/2 flex size-9 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full border border-trace/50 bg-studio-surface text-trace shadow-[0_0_28px_color-mix(in_oklch,var(--trace),transparent_60%)] outline-none focus-visible:ring-2 focus-visible:ring-trace/60"
             >
               <GripVertical className="size-4" />
             </div>

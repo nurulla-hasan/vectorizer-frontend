@@ -3,7 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowRight, LogIn, LogOut, Menu, PenLine } from "lucide-react";
+import {
+  ArrowRight,
+  CreditCard,
+  LogIn,
+  LogOut,
+  Menu,
+  PenLine,
+} from "lucide-react";
 import { Logo } from "@/components/common/logo";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -147,6 +154,16 @@ export function MobileNav({ items, className }: MobileNavProps) {
                   >
                     <PenLine className="size-4 shrink-0" />
                     <span>Vector Studio</span>
+                  </Link>
+                  <Link
+                    href="/plans"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    <CreditCard className="size-4 shrink-0" />
+                    <span>
+                      {user.plan === "FREE" ? "Upgrade Plan" : "Plans & Billing"}
+                    </span>
                   </Link>
                   <button
                     type="button"

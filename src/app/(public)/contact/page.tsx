@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Clock, Mail, MessageSquare, Send, Webhook } from "lucide-react";
+import { Building2, Clock, Mail, MessageSquare, Send } from "lucide-react";
 import { PageHero, TitleAccent } from "@/components/common/page-hero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { FaqSection } from "@/components/home/faq-section";
 import { successToast } from "@/lib/toast";
 
 const FIELD_CLASS =
-  "border-white/10 bg-white/[0.04] text-studio-foreground placeholder:text-studio-muted/60 focus-visible:border-trace/50 focus-visible:ring-trace/20 dark:border-white/10 dark:bg-white/[0.04]";
+  "border-border bg-card text-foreground placeholder:text-muted-foreground/70 focus-visible:border-primary/50 focus-visible:ring-primary/20";
 
 export default function ContactPage() {
   const [name, setName] = React.useState("");
@@ -42,12 +42,12 @@ export default function ContactPage() {
             <TitleAccent id="contact-underline">behind the tracer.</TitleAccent>
           </>
         }
-        description="Questions about vector quality, API access, or custom plans? Send us a note — a human on the tracing team writes back."
+        description="Questions about vector quality, custom plans, or team accounts? Send us a note — a human on the tracing team writes back."
         extra={
           <div className="mt-8 space-y-3">
             <a
               href="mailto:support@vectorizer.app"
-              className="group flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:border-trace/30 hover:bg-white/[0.06]"
+              className="group flex items-start gap-3 rounded-xl border border-border bg-card/70 p-4 transition-colors hover:border-primary/30 hover:bg-muted/70"
             >
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-trace/25 bg-trace/10 text-trace">
                 <Mail className="size-4" />
@@ -60,16 +60,16 @@ export default function ContactPage() {
               </div>
             </a>
 
-            <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="flex items-start gap-3 rounded-xl border border-border bg-card/70 p-4">
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
-                <Webhook className="size-4" />
+                <Building2 className="size-4" />
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-studio-foreground">
-                  API &amp; enterprise
+                  Enterprise &amp; teams
                 </p>
                 <p className="text-sm text-studio-muted">
-                  Custom rate limits &amp; dedicated GPU queues
+                  Custom volume &amp; dedicated processing queues
                 </p>
               </div>
             </div>
@@ -87,20 +87,20 @@ export default function ContactPage() {
             className="absolute -inset-6 -z-10 rounded-[2rem] bg-primary/20 blur-3xl"
           />
 
-          <div className="relative overflow-hidden rounded-2xl border border-studio-border bg-studio-surface/95 shadow-[0_40px_120px_-30px_rgba(2,6,23,0.85)] backdrop-blur">
+          <div className="relative overflow-hidden rounded-2xl border border-studio-border bg-studio-surface/95 shadow-[0_40px_120px_-30px_color-mix(in_oklch,var(--shadow-color),transparent_80%)] backdrop-blur">
             <div
               aria-hidden="true"
               className="vk-blueprint-grid absolute inset-0 opacity-40"
             />
             <div
               aria-hidden="true"
-              className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-trace/50 to-transparent"
+              className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-trace/50 to-transparent"
             />
 
             <div className="relative flex items-center gap-2 border-b border-studio-border/70 px-3 py-2.5">
-              <span className="size-2 rounded-full bg-[#ff5f57]/80" />
-              <span className="size-2 rounded-full bg-[#febc2e]/80" />
-              <span className="size-2 rounded-full bg-[#28c840]/80" />
+              <span className="size-2 rounded-full bg-dot-close/80" />
+              <span className="size-2 rounded-full bg-dot-min/80" />
+              <span className="size-2 rounded-full bg-dot-max/80" />
               <span className="mx-2 h-4 w-px bg-studio-border/70" />
               <span className="truncate font-mono text-[11px] text-studio-muted">
                 vectorizer / contact

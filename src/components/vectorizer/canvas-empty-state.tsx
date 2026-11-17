@@ -9,7 +9,7 @@ import {
   ImageUp,
   Sparkles,
 } from "lucide-react";
-import { Logo } from "@/components/common/logo";
+// import { Logo } from "@/components/common/logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -17,6 +17,7 @@ import { createImage } from "@/lib/cropImage";
 import { errorToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { PreCropDialog } from "./pre-crop-dialog";
+import { StudioUserMenu } from "./studio-user-menu";
 import {
   createSampleImageFile,
   CROPPABLE_MIME_TYPES,
@@ -246,11 +247,15 @@ export function CanvasEmptyState() {
           >
             <ArrowLeft className="size-4" />
           </Button>
-          <Logo size="sm" showText={false} />
+          {/* <Logo size="sm" showText={false} /> */}
           <span className="text-sm font-semibold text-studio-foreground">
             Vector Studio
           </span>
         </div>
+      </div>
+
+      <div className="absolute top-3 right-3 z-20">
+        <StudioUserMenu />
       </div>
 
       <input

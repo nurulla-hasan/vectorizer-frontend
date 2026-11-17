@@ -63,7 +63,7 @@ function PrinciplesPanel() {
 
       <div
         aria-hidden="true"
-        className="relative overflow-hidden rounded-2xl border border-studio-border bg-studio-surface/95 shadow-[0_40px_120px_-30px_rgba(2,6,23,0.85)] backdrop-blur"
+        className="relative overflow-hidden rounded-2xl border border-studio-border bg-studio-surface/95 shadow-[0_40px_120px_-30px_color-mix(in_oklch,var(--shadow-color),transparent_80%)] backdrop-blur"
       >
         <VectorGem
           idPrefix="about-gem"
@@ -71,9 +71,9 @@ function PrinciplesPanel() {
         />
 
         <div className="flex items-center gap-2 border-b border-studio-border/70 px-3 py-2.5">
-          <span className="size-2 rounded-full bg-[#ff5f57]/80" />
-          <span className="size-2 rounded-full bg-[#febc2e]/80" />
-          <span className="size-2 rounded-full bg-[#28c840]/80" />
+          <span className="size-2 rounded-full bg-dot-close/80" />
+          <span className="size-2 rounded-full bg-dot-min/80" />
+          <span className="size-2 rounded-full bg-dot-max/80" />
           <span className="mx-2 h-4 w-px bg-studio-border/70" />
           <span className="truncate font-mono text-[11px] text-studio-muted">
             vectorizer / principles.txt

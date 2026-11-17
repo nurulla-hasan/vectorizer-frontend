@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { StudioUserMenu } from "./studio-user-menu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -363,6 +364,10 @@ export function StudioToolbar({
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <div className="mx-1 h-6 w-px bg-studio-border" aria-hidden="true" />
+
+        <StudioUserMenu />
       </div>
     </div>
   );

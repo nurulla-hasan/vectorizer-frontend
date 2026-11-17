@@ -63,7 +63,7 @@ export function PageHero({
               contentClassName,
             )}
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-studio-muted">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/70 px-3 py-1 text-xs font-medium text-studio-muted">
               <BadgeIcon className="size-3.5 text-trace" />
               {badge}
             </span>
@@ -128,7 +128,7 @@ export function TitleAccent({
 }) {
   return (
     <span className="relative inline-block">
-      <span className="bg-[linear-gradient(90deg,var(--trace),#e7e5ff_48%,#8b8cf8)] bg-clip-text text-transparent">
+      <span className="bg-[linear-gradient(90deg,var(--trace),var(--title-gradient-2)_48%,var(--title-gradient-3))] bg-clip-text text-transparent">
         {children}
       </span>
       <svg

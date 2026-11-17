@@ -47,7 +47,7 @@ export function ExportAuthDialog() {
               <DialogDescription>
                 Interactive previews are free for everyone. Sign in to export
                 clean SVG, high-res PNG, and print-ready PDF files (Free
-                accounts include 5 starter credits).
+                accounts include starter credits).
               </DialogDescription>
             </DialogHeader>
 
@@ -122,15 +122,20 @@ export function ExportAuthDialog() {
             <DialogHeader>
               <DialogTitle>Out of export credits</DialogTitle>
               <DialogDescription>
-                Your Free plan credits have been used. Upgrade to a PRO or API
-                plan for unlimited high-precision SVG, PNG, and PDF exports.
+                Your Free plan credits have been used. Upgrade to PRO for
+                unlimited high-precision SVG, PNG, and PDF exports.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button variant="outline" onClick={closeModal}>
                 Continue Previewing
               </Button>
-              <Button onClick={closeModal}>Upgrade Plan</Button>
+              <Button
+                render={<Link href="/plans" />}
+                onClick={closeModal}
+              >
+                Upgrade Plan
+              </Button>
             </DialogFooter>
           </>
         )}

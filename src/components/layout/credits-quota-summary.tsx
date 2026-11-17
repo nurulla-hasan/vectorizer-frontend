@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useGetMe } from "@/services";
 
-const FREE_CREDIT_CAP = 5;
+const FALLBACK_CREDIT_CAP = 5;
 
 /** Compact plan & credits quota readout for navbar account menus. */
 export function CreditsQuotaSummary({ className }: { className?: string }) {
@@ -19,20 +19,23 @@ export function CreditsQuotaSummary({ className }: { className?: string }) {
 
   if (!user) return null;
 
-  const isUnlimited = user.plan !== "FREE";
+  const isUnlimited = user.unlimited ?? user.plan !== "FREE";
   const remaining = Math.max(0, user.credits);
+  // Never show "remaining / smaller-cap" if backend grants more than the plan
+  // limit (bonus credits, adjusted catalog), so the bar can not overflow.
+  const creditCap = Math.max(user.creditsLimit ?? FALLBACK_CREDIT_CAP, remaining);
   const exhausted = !isUnlimited && remaining <= 0;
   const nearCap = !isUnlimited && !exhausted && remaining <= 1;
   const percentage = isUnlimited
     ? 100
-    : Math.min(100, (remaining / FREE_CREDIT_CAP) * 100);
+    : Math.min(100, (remaining / creditCap) * 100);
 
   return (
     <div className={cn("w-full space-y-1.5", className)}>
       <div className="flex w-full items-center justify-between gap-2 text-xs">
         <span className="text-muted-foreground">{user.plan} Plan</span>
         <span className="font-medium tabular-nums">
-          {isUnlimited ? "Unlimited" : `${remaining} / ${FREE_CREDIT_CAP}`}
+          {isUnlimited ? "Unlimited" : `${remaining} / ${creditCap}`}
         </span>
       </div>
 
@@ -40,8 +43,8 @@ export function CreditsQuotaSummary({ className }: { className?: string }) {
         role="progressbar"
         aria-label="Available vector credits"
         aria-valuemin={0}
-        aria-valuemax={isUnlimited ? 100 : FREE_CREDIT_CAP}
-        aria-valuenow={isUnlimited ? 100 : Math.min(remaining, FREE_CREDIT_CAP)}
+        aria-valuemax={isUnlimited ? 100 : creditCap}
+        aria-valuenow={isUnlimited ? 100 : remaining}
         className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
       >
         <div

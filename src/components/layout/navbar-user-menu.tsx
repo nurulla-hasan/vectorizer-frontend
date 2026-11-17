@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, LogOut, PenLine } from "lucide-react";
+import {
+  ArrowRight,
+  CreditCard,
+  LogOut,
+  PenLine,
+  ReceiptText,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,6 +80,16 @@ export function NavbarUserMenu({ className }: { className?: string }) {
               <PenLine className="size-4 mr-2" />
               <span>Vector Studio</span>
             </DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/plans" />}>
+              <CreditCard className="size-4 mr-2" />
+              <span>{user.plan === "FREE" ? "Upgrade Plan" : "Plans & Billing"}</span>
+            </DropdownMenuItem>
+            {user.role === "ADMIN" && (
+              <DropdownMenuItem render={<Link href="/admin/payments" />}>
+                <ReceiptText className="size-4 mr-2" />
+                <span>Payment Requests</span>
+              </DropdownMenuItem>
+            )}
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onClick={() => logout()}>

@@ -61,7 +61,7 @@ export function CtaSection() {
               </Button>
               <Link
                 href="/auth/register"
-                className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/15 bg-white/[0.04] px-4 text-base font-medium text-studio-foreground transition-colors hover:bg-white/10"
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card/70 px-4 text-base font-medium text-studio-foreground transition-colors hover:bg-muted"
               >
                 <UserPlus className="size-4" />
                 Create free account

@@ -9,7 +9,7 @@ export type VectorEngine =
   | "subpixel-bezier"
   | "potrace-bezier"
   | "imagetracerjs";
-export type ExportFormat = "svg" | "png" | "pdf";
+export type ExportFormat = "svg" | "png" | "pdf" | "eps" | "dxf";
 
 export interface VectorSettings {
   colorPrecision: number;

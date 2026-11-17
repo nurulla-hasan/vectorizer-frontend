@@ -42,7 +42,7 @@ export function HeroSection() {
       >
         <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           <AnimationWrapper direction="up" className="max-w-xl">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-studio-muted">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/70 px-3 py-1 text-xs font-medium text-studio-muted">
               <Sparkles className="size-3.5 text-trace" />
               Raster → vector studio
             </span>
@@ -50,7 +50,7 @@ export function HeroSection() {
             <h1 className="mt-6 font-heading text-4xl font-bold tracking-tight text-studio-foreground sm:text-5xl lg:text-6xl">
               Turn pixels into{" "}
               <span className="relative inline-block">
-                <span className="bg-[linear-gradient(90deg,var(--trace),#e7e5ff_48%,#8b8cf8)] bg-clip-text text-transparent">
+                <span className="bg-[linear-gradient(90deg,var(--trace),var(--title-gradient-2)_48%,var(--title-gradient-3))] bg-clip-text text-transparent">
                   perfect vectors
                 </span>
                 <svg
@@ -91,7 +91,7 @@ export function HeroSection() {
               </Button>
               <Link
                 href="#how-it-works"
-                className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/15 bg-white/[0.04] px-4 text-base font-medium text-studio-foreground transition-colors hover:bg-white/10"
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card/70 px-4 text-base font-medium text-studio-foreground transition-colors hover:bg-muted"
               >
                 <PlayCircle className="size-4" />
                 See how it works
@@ -119,12 +119,12 @@ export function HeroSection() {
 
             <div
               aria-hidden="true"
-              className="vk-float relative rounded-2xl border border-studio-border bg-studio-surface/95 shadow-[0_40px_120px_-30px_rgba(2,6,23,0.85)] backdrop-blur"
+              className="vk-float relative rounded-2xl border border-studio-border bg-studio-surface/95 shadow-[0_40px_120px_-30px_color-mix(in_oklch,var(--shadow-color),transparent_80%)] backdrop-blur"
             >
               <div className="flex items-center gap-2 border-b border-studio-border/70 px-3 py-2.5">
-                <span className="size-2 rounded-full bg-[#ff5f57]/80" />
-                <span className="size-2 rounded-full bg-[#febc2e]/80" />
-                <span className="size-2 rounded-full bg-[#28c840]/80" />
+                <span className="size-2 rounded-full bg-dot-close/80" />
+                <span className="size-2 rounded-full bg-dot-min/80" />
+                <span className="size-2 rounded-full bg-dot-max/80" />
                 <span className="mx-2 h-4 w-px bg-studio-border/70" />
                 <span className="truncate font-mono text-[11px] text-studio-muted">
                   vectorizer / studio / compare.svg
@@ -147,7 +147,7 @@ export function HeroSection() {
                   </span>
                   <VectorGem idPrefix="hero-gem" className="w-3/5 max-w-52" />
                 </div>
-                <div className="absolute top-1/2 left-1/2 z-10 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-trace/40 bg-studio-surface text-trace shadow-[0_0_22px_rgba(34,211,238,0.35)]">
+                <div className="absolute top-1/2 left-1/2 z-10 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-trace/40 bg-studio-surface text-trace shadow-[0_0_22px_color-mix(in_oklch,var(--trace),transparent_65%)]">
                   <MoveHorizontal className="size-4" />
                 </div>
                 <div
