@@ -57,7 +57,7 @@ const PLAN_COPY: Record<
     highlighted: true,
     features: [
       "Unlimited SVG, PNG (up to 4x), PDF, EPS, and DXF exports",
-      "AI 4x Super-Resolution + Potrace / Rust VTracer",
+      "Vectorizer AI precision tracing engine",
       "Full color palette & curve tuning controls",
       "Priority processing queue",
     ],

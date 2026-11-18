@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   Cpu,
   MoveHorizontal,
-  PlayCircle,
   ScanSearch,
   Sparkles,
 } from "lucide-react";
@@ -89,13 +88,6 @@ export function HeroSection() {
                 Open the Studio
                 <ArrowRight className="size-4" />
               </Button>
-              <Link
-                href="#how-it-works"
-                className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card/70 px-4 text-base font-medium text-studio-foreground transition-colors hover:bg-muted"
-              >
-                <PlayCircle className="size-4" />
-                See how it works
-              </Link>
             </div>
 
             <ul className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
@@ -159,7 +151,7 @@ export function HeroSection() {
               <div className="flex items-center justify-between gap-3 border-t border-studio-border/70 px-3 py-2.5">
                 <span className="flex items-center gap-1.5 text-[11px] text-studio-muted">
                   <Cpu className="size-3.5 text-trace" />
-                  Hybrid AI + Potrace
+                  Vectorizer API
                 </span>
                 <span className="font-mono text-[10px] tracking-wider text-studio-muted">
                   SVG · PDF · EPS · DXF

@@ -5,9 +5,7 @@ import { cn } from "@/lib/utils";
 
 const PRODUCT_LINKS = [
   { href: "/studio", label: "Studio" },
-  { href: "/#features", label: "Features" },
-  { href: "/#how-it-works", label: "How it works" },
-  { href: "/#faq", label: "FAQ" },
+  { href: "/plans", label: "Plans" },
 ];
 
 const EXPORT_FORMATS = ["SVG", "PDF", "EPS", "DXF"];

@@ -2,14 +2,7 @@ import { API_BASE_URL, apiClient } from "@/lib/api-client";
 
 export type VectorMode = "spline" | "polygon" | "pixel";
 export type VectorHierarchical = "stacked" | "cutout";
-export type VectorEngine =
-  | "tracecraft-ai"
-  | "ai-vtracer-native"
-  | "ai-potrace-bezier"
-  | "vtracer-native"
-  | "subpixel-bezier"
-  | "potrace-bezier"
-  | "imagetracerjs";
+export type VectorEngine = "tracecraft-ai";
 export type ExportFormat = "svg" | "png" | "pdf" | "eps" | "dxf";
 export type VectorExportPreset = "general" | "editing" | "cutting";
 

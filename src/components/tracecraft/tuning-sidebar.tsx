@@ -32,12 +32,6 @@ import { useVectorStudio } from "./trace-studio-context";
 
 const ENGINE_LABELS: Record<VectorEngine, string> = {
   "tracecraft-ai": "TraceCraft.AI",
-  "ai-vtracer-native": "AI + Rust VTracer",
-  "ai-potrace-bezier": "AI + Potrace Bézier",
-  "vtracer-native": "Rust VTracer 0.6.4",
-  "subpixel-bezier": "Subpixel Bézier",
-  "potrace-bezier": "Potrace Bézier",
-  imagetracerjs: "ImageTracer",
 };
 
 const MODE_LABELS: Record<VectorMode, string> = {
@@ -100,8 +94,8 @@ export function TuningSidebar() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-1.5">
         {engine && (
-          <Badge variant={engine === "imagetracerjs" ? "outline" : "default"}>
-            {ENGINE_LABELS[engine] ?? "ImageTracer"}
+          <Badge variant="default">
+            {ENGINE_LABELS[engine] ?? "TraceCraft.AI"}
           </Badge>
         )}
         {processingMs !== null && (

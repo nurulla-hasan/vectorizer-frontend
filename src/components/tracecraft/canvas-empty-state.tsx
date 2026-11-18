@@ -341,8 +341,7 @@ export function CanvasEmptyState() {
                 </div>
 
                 <p className="mt-5 text-left text-xs text-studio-muted">
-                  VTracer is tracing your artwork — this usually takes a few
-                  seconds.
+                  Vectorizing your artwork — this usually takes a few seconds.
                 </p>
               </div>
             ) : (
