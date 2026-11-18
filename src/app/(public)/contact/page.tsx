@@ -46,7 +46,7 @@ export default function ContactPage() {
         extra={
           <div className="mt-8 space-y-3">
             <a
-              href="mailto:support@vectorizer.app"
+              href="mailto:support@tracecraft.app"
               className="group flex items-start gap-3 rounded-xl border border-border bg-card/70 p-4 transition-colors hover:border-primary/30 hover:bg-muted/70"
             >
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-trace/25 bg-trace/10 text-trace">
@@ -55,7 +55,7 @@ export default function ContactPage() {
               <div className="min-w-0">
                 <p className="text-sm font-medium text-studio-foreground">Email</p>
                 <p className="truncate text-sm text-studio-muted transition-colors group-hover:text-trace">
-                  support@vectorizer.app
+                  support@tracecraft.app
                 </p>
               </div>
             </a>
@@ -103,7 +103,7 @@ export default function ContactPage() {
               <span className="size-2 rounded-full bg-dot-max/80" />
               <span className="mx-2 h-4 w-px bg-studio-border/70" />
               <span className="truncate font-mono text-[11px] text-studio-muted">
-                vectorizer / contact
+                tracecraft / contact
               </span>
               <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-trace/30 bg-trace/10 px-2 py-0.5 font-mono text-[10px] tracking-wider text-trace uppercase">
                 <Clock className="size-3" />1 business day

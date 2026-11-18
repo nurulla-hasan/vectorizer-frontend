@@ -18,7 +18,7 @@ import { TuningSidebar } from "./tuning-sidebar";
 import {
   VectorStudioProvider,
   useVectorStudio,
-} from "./vector-studio-context";
+} from "./trace-studio-context";
 
 function VectorStudioWorkspace() {
   const {
@@ -161,7 +161,7 @@ function VectorStudioWorkspace() {
   );
 }
 
-export function VectorizerStudio() {
+export function TraceCraftStudio() {
   return (
     <VectorStudioProvider>
       <VectorStudioWorkspace />

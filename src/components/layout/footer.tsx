@@ -70,7 +70,7 @@ export function Footer() {
 
         <div className="flex flex-col gap-2 border-t border-border/60 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Vectorizer. Built with Next.js &
+            © {new Date().getFullYear()} TraceCraft. Built with Next.js &
             Tailwind CSS.
           </p>
           <p className="text-xs text-muted-foreground">

@@ -52,7 +52,7 @@ function LoginFormContent() {
     onSubmit: async ({ value }) => {
       try {
         await login(value);
-        successToast("Welcome back", "Signed in to Vectorizer AI.");
+        successToast("Welcome back", "Signed in to TraceCraft AI.");
         router.push("/studio");
       } catch (error: unknown) {
         errorToast("Sign in failed", getErrorMessage(error, "Invalid credentials"));

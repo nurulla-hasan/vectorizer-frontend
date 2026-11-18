@@ -48,7 +48,7 @@ import { EXPORT_PRESET_LABELS, type VectorExportPreset } from "@/services";
 import {
   LOUPE_MIN_ZOOM_PERCENT,
   useVectorStudio,
-} from "./vector-studio-context";
+} from "./trace-studio-context";
 
 export function StudioToolbar({
   onOpenSettings,

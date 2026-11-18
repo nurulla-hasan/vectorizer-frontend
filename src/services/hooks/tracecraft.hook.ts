@@ -10,12 +10,12 @@ import {
   saveSvgEdits,
   uploadAndProcessImage,
   type VectorSettings,
-} from "../api/vectorizer.api";
+} from "../api/tracecraft.api";
 import { AUTH_ME_QUERY_KEY } from "./auth.hook";
 
-export const vectorizerKeys = {
-  all: ["vectorizer"] as const,
-  preview: (jobId: string) => ["vectorizer", "preview", jobId] as const,
+export const tracecraftKeys = {
+  all: ["tracecraft"] as const,
+  preview: (jobId: string) => ["tracecraft", "preview", jobId] as const,
 };
 
 /**
@@ -23,7 +23,7 @@ export const vectorizerKeys = {
  */
 export function useVectorPreview(jobId: string | null | undefined) {
   return useQuery({
-    queryKey: vectorizerKeys.preview(jobId ?? ""),
+    queryKey: tracecraftKeys.preview(jobId ?? ""),
     queryFn: () => getVectorPreview(jobId as string),
     enabled: Boolean(jobId),
     retry: false,

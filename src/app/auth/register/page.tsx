@@ -83,7 +83,7 @@ export default function RegisterPage() {
 
     try {
       await verifyOtp({ email: pendingEmail, otp });
-      successToast("Email verified", "Welcome to Vectorizer AI — 5 credits added.");
+      successToast("Email verified", "Welcome to TraceCraft AI — 5 credits added.");
       router.push("/studio");
     } catch (error: unknown) {
       errorToast(

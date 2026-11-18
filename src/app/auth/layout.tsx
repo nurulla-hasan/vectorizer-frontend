@@ -44,7 +44,7 @@ export default function AuthLayout({
             <Shapes className="size-5" />
           </span>
           <span className="text-lg font-bold tracking-tight text-studio-foreground">
-            Vectorizer
+            TraceCraft
           </span>
         </Link>
 
@@ -75,7 +75,7 @@ export default function AuthLayout({
         </div>
 
         <p className="relative z-10 font-mono text-xs text-studio-muted">
-          © {new Date().getFullYear()} Vectorizer · Clean vectors, every time.
+          © {new Date().getFullYear()} TraceCraft · Clean vectors, every time.
         </p>
       </aside>
 

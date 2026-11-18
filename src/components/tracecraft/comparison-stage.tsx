@@ -7,9 +7,9 @@ import {
   LOUPE_MIN_ZOOM_PERCENT,
   MAX_ZOOM_SCALE,
   useVectorStudio,
-} from "./vector-studio-context";
+} from "./trace-studio-context";
 import { PathEditorOverlay } from "./path-editor-overlay";
-import { VectorSvgLayer } from "./vector-svg-layer";
+import { VectorSvgLayer } from "./trace-svg-layer";
 import { WireframeLoupe } from "./wireframe-loupe";
 
 function clamp(value: number, min: number, max: number): number {

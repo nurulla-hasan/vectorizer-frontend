@@ -3,6 +3,7 @@ import { API_BASE_URL, apiClient } from "@/lib/api-client";
 export type VectorMode = "spline" | "polygon" | "pixel";
 export type VectorHierarchical = "stacked" | "cutout";
 export type VectorEngine =
+  | "tracecraft-ai"
   | "ai-vtracer-native"
   | "ai-potrace-bezier"
   | "vtracer-native"
@@ -31,21 +32,21 @@ export const EXPORT_PRESET_LABELS: Record<
 };
 
 export interface VectorSettings {
-  colorPrecision: number;
   maxColors: number;
   filterSpeckle: number;
-  cornerThreshold: number;
   mode: VectorMode;
   hierarchical: VectorHierarchical;
+  removeBackground: boolean;
+  backgroundTolerance: number;
 }
 
 export const DEFAULT_VECTOR_SETTINGS: VectorSettings = {
-  colorPrecision: 6,
-  maxColors: 6,
+  maxColors: 24,
   filterSpeckle: 12,
-  cornerThreshold: 70,
   mode: "spline",
-  hierarchical: "stacked",
+  hierarchical: "cutout",
+  removeBackground: false,
+  backgroundTolerance: 64,
 };
 
 export interface VectorJobMetadata {
@@ -104,13 +105,13 @@ export type DownloadErrorReason =
   | "INSUFFICIENT_CREDITS"
   | "FAILED";
 
-export class VectorizerDownloadError extends Error {
+export class TraceCraftDownloadError extends Error {
   readonly reason: DownloadErrorReason;
   readonly statusCode: number;
 
   constructor(reason: DownloadErrorReason, message: string, statusCode: number) {
     super(message);
-    this.name = "VectorizerDownloadError";
+    this.name = "TraceCraftDownloadError";
     this.reason = reason;
     this.statusCode = statusCode;
   }
@@ -124,15 +125,15 @@ export async function uploadAndProcessImage(
   formData.append("image", file);
 
   const merged = { ...DEFAULT_VECTOR_SETTINGS, ...settings };
-  formData.append("colorPrecision", String(merged.colorPrecision));
   formData.append("maxColors", String(merged.maxColors));
   formData.append("filterSpeckle", String(merged.filterSpeckle));
-  formData.append("cornerThreshold", String(merged.cornerThreshold));
   formData.append("mode", merged.mode);
   formData.append("hierarchical", merged.hierarchical);
+  formData.append("removeBackground", String(merged.removeBackground));
+  formData.append("backgroundTolerance", String(merged.backgroundTolerance));
 
   const response = await apiClient<ApiEnvelope<VectorJobMetadata>>(
-    "/vectorizer/process",
+    "/tracecraft/process",
     {
       method: "POST",
       body: formData,
@@ -147,7 +148,7 @@ export async function importImageFromUrl(
   settings: Partial<VectorSettings> = {},
 ): Promise<VectorJobMetadata> {
   const response = await apiClient<ApiEnvelope<VectorJobMetadata>>(
-    "/vectorizer/import-url",
+    "/tracecraft/import-url",
     {
       method: "POST",
       body: { url, ...settings },
@@ -162,7 +163,7 @@ export async function reprocessVectorJob(
   settings: Partial<VectorSettings>,
 ): Promise<ReprocessVectorResponse> {
   const response = await apiClient<ApiEnvelope<ReprocessVectorResponse>>(
-    `/vectorizer/${jobId}/reprocess`,
+    `/tracecraft/${jobId}/reprocess`,
     {
       method: "POST",
       body: settings,
@@ -173,14 +174,14 @@ export async function reprocessVectorJob(
 }
 
 export function getOriginalImageUrl(jobId: string): string {
-  return `${API_BASE_URL}/vectorizer/${jobId}/original`;
+  return `${API_BASE_URL}/tracecraft/${jobId}/original`;
 }
 
 export async function getVectorPreview(
   jobId: string,
 ): Promise<VectorPreviewResponse> {
   const response = await apiClient<ApiEnvelope<VectorPreviewResponse>>(
-    `/vectorizer/${jobId}/preview`,
+    `/tracecraft/${jobId}/preview`,
   );
 
   return response.data;
@@ -190,7 +191,7 @@ export async function saveSvgEdits(
   jobId: string,
   svg: string,
 ): Promise<void> {
-  await apiClient(`/vectorizer/${jobId}/svg`, {
+  await apiClient(`/tracecraft/${jobId}/svg`, {
     method: "PUT",
     body: { svg },
   });
@@ -226,7 +227,7 @@ export async function downloadVectorFile(
   });
 
   const response = await fetch(
-    `${API_BASE_URL}/vectorizer/${jobId}/download?${params.toString()}`,
+    `${API_BASE_URL}/tracecraft/${jobId}/download?${params.toString()}`,
     {
       method: "GET",
       credentials: "include",
@@ -248,7 +249,7 @@ export async function downloadVectorFile(
     }
 
     if (response.status === 401) {
-      throw new VectorizerDownloadError(
+      throw new TraceCraftDownloadError(
         "AUTH_REQUIRED",
         serverMessage,
         response.status,
@@ -260,14 +261,14 @@ export async function downloadVectorFile(
       (errorCode === "INSUFFICIENT_CREDITS" ||
         serverMessage.toLowerCase().includes("credit"))
     ) {
-      throw new VectorizerDownloadError(
+      throw new TraceCraftDownloadError(
         "INSUFFICIENT_CREDITS",
         serverMessage,
         response.status,
       );
     }
 
-    throw new VectorizerDownloadError(
+    throw new TraceCraftDownloadError(
       "FAILED",
       serverMessage,
       response.status,

@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { getGoogleLoginUrl } from "@/services";
-import { useVectorStudio } from "./vector-studio-context";
+import { useVectorStudio } from "./trace-studio-context";
 
 export function ExportAuthDialog() {
   const {

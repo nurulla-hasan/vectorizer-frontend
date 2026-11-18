@@ -107,7 +107,7 @@ function CreditsCard({ credits }: { credits: number }) {
           <span className="size-2 rounded-full bg-dot-max/80" />
           <span className="mx-2 h-4 w-px bg-studio-border/70" />
           <span className="truncate font-mono text-[11px] text-studio-muted">
-            vectorizer / credits
+            tracecraft / credits
           </span>
           <span className="ml-auto rounded-full border border-trace/30 bg-trace/10 px-2 py-0.5 font-mono text-[10px] tracking-wider text-trace">
             FREE

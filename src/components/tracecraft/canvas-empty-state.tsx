@@ -31,7 +31,7 @@ import {
   SAMPLE_PRESETS,
   type SamplePreset,
 } from "./types";
-import { useVectorStudio } from "./vector-studio-context";
+import { useVectorStudio } from "./trace-studio-context";
 
 function SampleThumbnail({ presetId }: { presetId: string }) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);

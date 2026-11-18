@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useVectorStudio } from "./vector-studio-context";
-import { VectorSvgLayer } from "./vector-svg-layer";
+import { useVectorStudio } from "./trace-studio-context";
+import { VectorSvgLayer } from "./trace-svg-layer";
 
 const LOUPE_RADIUS = 88; // 176px lens / 2 (size-44)
 

@@ -21,15 +21,17 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import type {
   VectorEngine,
   VectorHierarchical,
   VectorMode,
   VectorSettings,
 } from "@/services";
-import { useVectorStudio } from "./vector-studio-context";
+import { useVectorStudio } from "./trace-studio-context";
 
 const ENGINE_LABELS: Record<VectorEngine, string> = {
+  "tracecraft-ai": "TraceCraft.AI",
   "ai-vtracer-native": "AI + Rust VTracer",
   "ai-potrace-bezier": "AI + Potrace Bézier",
   "vtracer-native": "Rust VTracer 0.6.4",
@@ -176,29 +178,6 @@ export function TuningSidebar() {
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <Label htmlFor="color-precision-slider">Color Precision</Label>
-            <span className="font-mono text-studio-muted">
-              {settings.colorPrecision}
-            </span>
-          </div>
-          <Slider
-            id="color-precision-slider"
-            aria-label="Color precision"
-            min={1}
-            max={8}
-            step={1}
-            value={settings.colorPrecision}
-            onValueChange={(val) =>
-              updateField(
-                "colorPrecision",
-                Array.isArray(val) ? val[0] : val,
-              )
-            }
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-xs">
             <Label htmlFor="max-colors-slider">Max Palette Colors</Label>
             <span className="font-mono text-studio-muted">
               {settings.maxColors}
@@ -237,27 +216,51 @@ export function TuningSidebar() {
           />
         </div>
 
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-xs">
-            <Label htmlFor="corner-threshold-slider">Corner Threshold</Label>
-            <span className="font-mono text-studio-muted">
-              {settings.cornerThreshold}°
-            </span>
+        <Separator />
+
+        <div className="space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-0.5">
+              <Label htmlFor="remove-background">Remove Background</Label>
+              <p className="text-xs text-studio-muted">
+                Global color key: all background-colored pixels become
+                transparent, including enclosed areas.
+              </p>
+            </div>
+            <Switch
+              id="remove-background"
+              checked={settings.removeBackground}
+              onCheckedChange={(checked) =>
+                updateField("removeBackground", checked)
+              }
+            />
           </div>
-          <Slider
-            id="corner-threshold-slider"
-            aria-label="Corner threshold"
-            min={0}
-            max={180}
-            step={5}
-            value={settings.cornerThreshold}
-            onValueChange={(val) =>
-              updateField(
-                "cornerThreshold",
-                Array.isArray(val) ? val[0] : val,
-              )
-            }
-          />
+          {settings.removeBackground && (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <Label htmlFor="background-tolerance-slider">
+                  Background Tolerance
+                </Label>
+                <span className="font-mono text-studio-muted">
+                  {settings.backgroundTolerance}
+                </span>
+              </div>
+              <Slider
+                id="background-tolerance-slider"
+                aria-label="Background color tolerance"
+                min={8}
+                max={128}
+                step={4}
+                value={settings.backgroundTolerance}
+                onValueChange={(val) =>
+                  updateField(
+                    "backgroundTolerance",
+                    Array.isArray(val) ? val[0] : val,
+                  )
+                }
+              />
+            </div>
+          )}
         </div>
       </div>
 

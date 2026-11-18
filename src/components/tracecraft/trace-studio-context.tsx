@@ -15,7 +15,7 @@ import {
   useProcessImage,
   useReprocessVectorJob,
   useSaveSvgEdits,
-  VectorizerDownloadError,
+  TraceCraftDownloadError,
   type VectorJobMetadata,
   type VectorPreviewData,
   type VectorSettings,
@@ -694,7 +694,7 @@ function useVectorStudioController() {
           `${label} downloaded · ${exportPreset} preset.`,
         );
       } catch (error: unknown) {
-        if (error instanceof VectorizerDownloadError) {
+        if (error instanceof TraceCraftDownloadError) {
           if (
             error.reason === "AUTH_REQUIRED" ||
             error.reason === "INSUFFICIENT_CREDITS"

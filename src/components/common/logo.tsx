@@ -39,7 +39,7 @@ export function Logo({
 
       {showText && (
         <span className="text-lg font-bold tracking-tight text-foreground">
-          Vectorizer
+          TraceCraft
         </span>
       )}
     </Link>

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vectorizer | Raster to Vector Studio",
+  title: "TraceCraft | Raster to Vector Studio",
   description:
     "Convert PNG, JPG, and WebP images into clean, scalable SVG, PDF, EPS, and DXF vectors.",
 };

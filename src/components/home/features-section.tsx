@@ -78,7 +78,7 @@ export function FeaturesSection() {
         )}
       >
         <SectionHeading
-          badge="Why Vectorizer"
+          badge="Why TraceCraft"
           title="Everything you need to ship clean vectors"
           description="A complete tracing workspace — not just a converter. Compare, tune, and export without leaving the canvas."
           descriptionClassName="mt-3"

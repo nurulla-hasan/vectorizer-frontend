@@ -1,3 +1,3 @@
 export * from "./auth.api";
 export * from "./subscription.api";
-export * from "./vectorizer.api";
+export * from "./tracecraft.api";

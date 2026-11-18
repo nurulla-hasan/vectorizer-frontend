@@ -1,5 +1,5 @@
-import { VectorizerStudio } from "@/components/vectorizer/vectorizer-studio";
+import { TraceCraftStudio } from "@/components/tracecraft/tracecraft-studio";
 
 export default function StudioPage() {
-  return <VectorizerStudio />;
+  return <TraceCraftStudio />;
 }

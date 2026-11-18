@@ -76,7 +76,7 @@ function PrinciplesPanel() {
           <span className="size-2 rounded-full bg-dot-max/80" />
           <span className="mx-2 h-4 w-px bg-studio-border/70" />
           <span className="truncate font-mono text-[11px] text-studio-muted">
-            vectorizer / principles.txt
+            tracecraft / principles.txt
           </span>
           <span className="ml-auto rounded-full border border-trace/30 bg-trace/10 px-2 py-0.5 font-mono text-[10px] tracking-wider text-trace">
             FYI
@@ -114,7 +114,7 @@ export default function AboutPage() {
   return (
     <>
       <PageHero
-        badge="About Vectorizer"
+        badge="About TraceCraft"
         badgeIcon={Sparkles}
         title={
           <>
@@ -124,7 +124,7 @@ export default function AboutPage() {
             </TitleAccent>
           </>
         }
-        description="Vectorizer turns PNG, JPG, and WebP artwork into crisp, editable SVG paths without concentric gray halos or jagged staircases."
+        description="TraceCraft turns PNG, JPG, and WebP artwork into crisp, editable SVG paths without concentric gray halos or jagged staircases."
         contentClassName="max-w-2xl"
         points={[
           "AI-assisted reconstruction",
