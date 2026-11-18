@@ -21,7 +21,7 @@ const HERO_POINTS = [
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden border-b border-studio-border/50 bg-studio-surface">
+    <section className="relative flex min-h-dvh lg:h-dvh items-center overflow-hidden bg-studio-surface pt-16">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
@@ -29,17 +29,16 @@ export function HeroSection() {
         <div className="vk-blueprint-grid absolute inset-0 opacity-30" />
         <div className="absolute top-[-14rem] right-[-8%] size-[38rem] rounded-full bg-primary/25 blur-[130px]" />
         <div className="absolute bottom-[-12rem] left-[-10%] size-[32rem] rounded-full bg-trace/10 blur-[120px]" />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
       </div>
 
       <div
         className={cn(
-          "relative mx-auto w-full py-20 sm:py-28",
+          "relative mx-auto w-full py-4 sm:py-6",
           CONTAINER_MAX_WIDTH,
           CONTAINER_GUTTER,
         )}
       >
-        <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
           <AnimationWrapper direction="up" className="max-w-xl">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/70 px-3 py-1 text-xs font-medium text-studio-muted">
               <Sparkles className="size-3.5 text-trace" />

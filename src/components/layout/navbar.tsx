@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { Logo } from "@/components/common/logo";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 // import { useHasMounted } from "@/hooks";
@@ -16,12 +17,16 @@ interface NavbarProps {
 
 export function Navbar({ className }: NavbarProps) {
   const navLinks = useNavLinks();
+  const isHome = usePathname() === "/";
   // const hasMounted = useHasMounted();
 
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-md transition-colors",
+        "top-0 z-40 w-full transition-colors",
+        isHome
+          ? "absolute inset-x-0 border-b border-transparent bg-transparent"
+          : "sticky border-b border-border/60 bg-background/80 backdrop-blur-md",
         className,
       )}
     >
