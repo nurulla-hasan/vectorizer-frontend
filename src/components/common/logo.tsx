@@ -30,7 +30,7 @@ export function Logo({
     >
       <span
         className={cn(
-          "inline-flex shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground",
+          "inline-flex shrink-0 -rotate-2 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[2px_2px_0_0_rgba(0,0,0,0.35)] transition-transform group-hover:rotate-0",
           boxSize
         )}
       >

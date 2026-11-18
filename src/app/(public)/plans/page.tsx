@@ -7,16 +7,11 @@ import {
   ArrowRight,
   Check,
   Clock3,
-  CreditCard,
-  Gauge,
   RefreshCw,
   ShieldCheck,
-  Sparkles,
   Zap,
 } from "lucide-react";
-import { PageHero, TitleAccent } from "@/components/common/page-hero";
 import AnimationWrapper from "@/components/common/animation-wrapper";
-import { CtaSection } from "@/components/home/cta-section";
 import { UpgradePlanDialog } from "@/components/subscription/upgrade-plan-dialog";
 import { Button } from "@/components/ui/button";
 import { CONTAINER_GUTTER, CONTAINER_MAX_WIDTH } from "@/lib/layout";
@@ -41,7 +36,8 @@ const PLAN_COPY: Record<
 > = {
   FREE: {
     code: "PLAN 01",
-    description: "Try AI-assisted vectorization and inspect paths in the Studio.",
+    description:
+      "Try AI-assisted vectorization and inspect paths in the Studio.",
     badge: null,
     highlighted: false,
     features: [
@@ -52,7 +48,8 @@ const PLAN_COPY: Record<
   },
   PRO: {
     code: "PLAN 02",
-    description: "Unlimited high-precision vector exports for designers & teams.",
+    description:
+      "Unlimited high-precision vector exports for designers & teams.",
     badge: "Most popular",
     highlighted: true,
     features: [
@@ -68,105 +65,28 @@ const PLAN_ORDER: UserPlan[] = ["FREE", "PRO"];
 
 const formatBdt = (amount: number) => `৳${amount.toLocaleString("en-US")}`;
 
-const CREDIT_STEPS = [
+const BOTTOM_NOTES = [
   {
-    icon: Sparkles,
+    num: "01",
     title: "Preview for free",
-    description:
-      "Tune colors, smoothing, and corners with a live split-canvas preview. Previews never spend credits.",
+    desc: "Tune colors & curves — previews never spend credits",
+    accent: "text-sky-400",
   },
   {
-    icon: CreditCard,
-    title: "Export with credits",
-    description:
-      "Each export costs one credit. Free accounts start with starter credits — no card required.",
+    num: "02",
+    title: "1 credit per export",
+    desc: "Starter credits included on sign-up, no card needed",
+    accent: "text-[#f6d55c]",
   },
   {
-    icon: Gauge,
-    title: "Scale without limits",
-    description:
-      "Pro removes credit counts and adds priority processing for teams and high-volume work.",
+    num: "03",
+    title: "Pro = unlimited",
+    desc: "Remove credit limits + priority processing queue",
+    accent: "text-emerald-400",
   },
 ];
 
-function CreditsCard({ credits }: { credits: number }) {
-  return (
-    <div className="relative">
-      <div
-        aria-hidden="true"
-        className="absolute -inset-6 -z-10 rounded-[2rem] bg-primary/20 blur-3xl"
-      />
-
-      <div
-        aria-hidden="true"
-        className="vk-float relative rounded-2xl border border-studio-border bg-studio-surface/95 shadow-[0_40px_120px_-30px_color-mix(in_oklch,var(--shadow-color),transparent_80%)] backdrop-blur"
-      >
-        <div className="flex items-center gap-2 border-b border-studio-border/70 px-3 py-2.5">
-          <span className="size-2 rounded-full bg-dot-close/80" />
-          <span className="size-2 rounded-full bg-dot-min/80" />
-          <span className="size-2 rounded-full bg-dot-max/80" />
-          <span className="mx-2 h-4 w-px bg-studio-border/70" />
-          <span className="truncate font-mono text-[11px] text-studio-muted">
-            tracecraft / credits
-          </span>
-          <span className="ml-auto rounded-full border border-trace/30 bg-trace/10 px-2 py-0.5 font-mono text-[10px] tracking-wider text-trace">
-            FREE
-          </span>
-        </div>
-
-        <div className="space-y-5 p-5">
-          <div>
-            <span className="font-mono text-[10px] tracking-[0.2em] text-studio-muted uppercase">
-              Available credits
-            </span>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-heading text-5xl font-bold tracking-tight text-studio-foreground">
-                {credits > 0 ? credits : "—"}
-              </span>
-              <span className="text-sm text-studio-muted">exports on sign-up</span>
-            </div>
-            <div className="mt-4 flex gap-1.5" aria-hidden="true">
-              {Array.from({ length: Math.min(credits, 10) }).map((_, index) => (
-                <span
-                  key={index}
-                  className="h-1.5 flex-1 rounded-full bg-linear-to-r from-trace/80 to-primary/80"
-                />
-              ))}
-            </div>
-          </div>
-
-          <ul className="space-y-2.5 border-t border-studio-border/70 pt-4 text-sm">
-            <li className="flex items-center justify-between gap-3">
-              <span className="text-studio-muted">Preview &amp; tuning</span>
-              <span className="font-mono text-[11px] tracking-wider text-trace uppercase">
-                Free
-              </span>
-            </li>
-            <li className="flex items-center justify-between gap-3">
-              <span className="text-studio-muted">Each export</span>
-              <span className="font-mono text-[11px] tracking-wider text-studio-foreground uppercase">
-                1 credit
-              </span>
-            </li>
-            <li className="flex items-center justify-between gap-3">
-              <span className="text-studio-muted">Formats</span>
-              <span className="font-mono text-[11px] tracking-wider text-studio-muted uppercase">
-                SVG · PDF · EPS · DXF
-              </span>
-            </li>
-          </ul>
-        </div>
-
-        <div className="flex items-center gap-2 border-t border-studio-border/70 px-4 py-2.5 text-[11px] text-studio-muted">
-          <ShieldCheck className="size-3.5 text-trace" />
-          Credits are only spent when you export.
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PricingSection() {
+export default function PlansPage() {
   const router = useRouter();
   const { data: user, isLoading: userLoading } = useGetMe();
   const { data: plans, isLoading, isError, refetch } = usePlans();
@@ -195,47 +115,55 @@ function PricingSection() {
   };
 
   return (
-    <section id="pricing" className="relative overflow-hidden">
+    <section className="relative flex min-h-dvh lg:h-dvh flex-col justify-between overflow-hidden bg-studio-surface pt-20 pb-5">
+      {/* Dot-grid notebook background */}
       <div
         aria-hidden="true"
-        className="vk-dot-grid vk-dot-fade pointer-events-none absolute inset-0 opacity-40"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute top-1/4 -right-40 size-96 rounded-full bg-primary/5 blur-3xl"
+        className="pointer-events-none absolute inset-0 vk-dot-grid opacity-40"
       />
 
       <div
         className={cn(
-          "relative mx-auto w-full py-16 sm:py-20",
+          "relative mx-auto my-auto w-full",
           CONTAINER_MAX_WIDTH,
           CONTAINER_GUTTER,
         )}
       >
+        {/* Compact Sketch Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-primary uppercase">
-              <span aria-hidden="true" className="size-1.5 rounded-full bg-trace" />
-              Compare plans
+            <p className="font-mono text-xs tracking-wider text-studio-muted">
+              <span className="text-studio-muted/60">{"//"}</span> Plans &amp;
+              credits · Vectorizer API
             </p>
-            <h2 className="mt-3 font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              Two ways to vectorize.
-            </h2>
+            <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-studio-foreground sm:text-4xl lg:text-[2.75rem]">
+              Simple pricing,{" "}
+              <span className="inline-block -rotate-1 bg-[#f6d55c] px-2.5 py-0.5 text-[#1e1f22] shadow-[3px_3px_0_0_rgba(0,0,0,0.35)]">
+                zero guesswork
+              </span>
+              .
+            </h1>
           </div>
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <ShieldCheck className="size-4 text-primary" />
-            A credit is used only when you export — never for previews.
-          </p>
+
+          <div className="flex flex-col items-start gap-1 sm:items-end">
+            <span className="-rotate-2 font-[family-name:var(--font-hand)] text-xl text-indigo-400">
+              previews are always free ↗
+            </span>
+            <p className="flex items-center gap-1.5 font-mono text-xs text-studio-muted">
+              <ShieldCheck className="size-3.5 text-emerald-400" />
+              Credits are only spent when you export.
+            </p>
+          </div>
         </div>
 
+        {/* Pending Payment Banner */}
         {pendingRequest && (
-          <div className="mt-8 flex flex-col gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
-            <p className="flex items-center gap-2">
-              <Clock3 className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div className="mt-4 flex flex-col gap-3 rounded-xl border border-dashed border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-xs sm:flex-row sm:items-center sm:justify-between">
+            <p className="flex items-center gap-2 text-studio-foreground">
+              <Clock3 className="size-4 shrink-0 text-amber-400" />
               <span>
                 Your <strong>{pendingRequest.plan}</strong> payment (
-                {formatBdt(pendingRequest.amount)}) is under review. We will
-                activate the plan as soon as an admin verifies it.
+                {formatBdt(pendingRequest.amount)}) is under review.
               </span>
             </p>
             <Button
@@ -251,18 +179,19 @@ function PricingSection() {
           </div>
         )}
 
+        {/* Plan Cards */}
         {isLoading ? (
-          <div className="mx-auto mt-10 grid max-w-4xl items-stretch gap-5 lg:grid-cols-2">
+          <div className="mx-auto mt-6 grid max-w-5xl items-stretch gap-6 lg:grid-cols-2">
             {PLAN_ORDER.map((code) => (
               <div
                 key={code}
-                className="h-125 animate-pulse rounded-2xl bg-muted"
+                className="h-[380px] animate-pulse rounded-2xl border border-studio-border bg-studio-panel/60"
               />
             ))}
           </div>
         ) : isError || !plans ? (
-          <div className="mt-10 flex flex-col items-center gap-3 rounded-2xl border border-border/70 bg-card/60 p-10 text-center">
-            <p className="text-sm text-muted-foreground">
+          <div className="mx-auto mt-8 flex max-w-xl flex-col items-center gap-3 rounded-2xl border border-dashed border-studio-border bg-studio-panel p-10 text-center">
+            <p className="text-sm text-studio-muted">
               Pricing could not be loaded right now.
             </p>
             <Button variant="outline" onClick={() => refetch()}>
@@ -271,7 +200,7 @@ function PricingSection() {
             </Button>
           </div>
         ) : (
-          <div className="mx-auto mt-10 grid max-w-4xl items-stretch gap-5 lg:grid-cols-2">
+          <div className="mx-auto mt-6 grid max-w-5xl items-stretch gap-6 lg:grid-cols-2 lg:gap-8">
             {PLAN_ORDER.map((code, index) => {
               const plan = planByCode.get(code);
               if (!plan) return null;
@@ -301,68 +230,48 @@ function PricingSection() {
                 <AnimationWrapper
                   key={plan.code}
                   delay={index * 0.08}
-                  className="h-full"
+                  className="relative h-full"
                 >
+                  {/* Stacked sheet & masking tape on PRO card */}
+                  {copy.highlighted && (
+                    <>
+                      <div
+                        aria-hidden="true"
+                        className="absolute inset-0 translate-x-2 translate-y-2 rotate-1 rounded-2xl border border-studio-border bg-studio-panel/60"
+                      />
+                      <div
+                        aria-hidden="true"
+                        className="absolute -top-3 left-1/2 z-20 h-6 w-24 -translate-x-1/2 -rotate-2 bg-[#d4b84a]/85 shadow-sm"
+                      />
+                    </>
+                  )}
+
                   <article
                     className={cn(
-                      "group relative flex h-full flex-col overflow-hidden rounded-2xl border p-6 transition-all duration-300",
+                      "relative flex h-full flex-col overflow-hidden rounded-2xl border p-6 transition-transform duration-200",
                       copy.highlighted
-                        ? "border-studio-border bg-studio-surface text-studio-foreground shadow-[0_30px_90px_-30px_color-mix(in_oklch,var(--shadow-color),transparent_82%)]"
-                        : "border-border/70 bg-card/80 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_24px_60px_-28px_color-mix(in_oklch,var(--primary),transparent_55%)]",
+                        ? "border-[#f6d55c]/45 bg-studio-panel shadow-2xl"
+                        : "border-studio-border bg-studio-panel/85 hover:-translate-y-0.5",
                     )}
                   >
-                    {copy.highlighted && (
-                      <>
-                        <div
-                          aria-hidden="true"
-                          className="vk-blueprint-grid absolute inset-0 opacity-50"
-                        />
-                        <div
-                          aria-hidden="true"
-                          className="absolute -top-16 -right-16 size-48 rounded-full bg-primary/25 blur-3xl"
-                        />
-                        <div
-                          aria-hidden="true"
-                          className="absolute -bottom-20 -left-16 size-48 rounded-full bg-trace/10 blur-3xl"
-                        />
-                        <div
-                          aria-hidden="true"
-                          className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-trace/60 to-transparent"
-                        />
-                      </>
-                    )}
-
-                    <div className="relative flex items-start justify-between gap-3">
+                    <div className="flex items-start justify-between gap-3">
                       <div>
-                        <span
-                          className={cn(
-                            "font-mono text-[10px] tracking-[0.2em] uppercase",
-                            copy.highlighted
-                              ? "text-studio-muted"
-                              : "text-muted-foreground/60",
-                          )}
-                        >
+                        <span className="font-mono text-[10px] tracking-[0.2em] text-studio-muted uppercase">
                           {copy.code}
                         </span>
-                        <h3
-                          className={cn(
-                            "mt-1 font-heading text-lg font-semibold tracking-tight",
-                            copy.highlighted
-                              ? "text-studio-foreground"
-                              : "text-foreground",
-                          )}
-                        >
+                        <h2 className="mt-1 font-heading text-xl font-bold tracking-tight text-studio-foreground">
                           {plan.label}
-                        </h3>
+                        </h2>
                       </div>
+
                       {isCurrentPlan ? (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10px] tracking-wider text-emerald-600 uppercase dark:text-emerald-400">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2.5 py-0.5 font-mono text-[10px] tracking-wider text-emerald-400 uppercase">
                           <Check className="size-3" />
                           Current plan
                         </span>
                       ) : (
                         copy.badge && (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-trace/30 bg-trace/10 px-2.5 py-0.5 font-mono text-[10px] tracking-wider text-trace uppercase">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-[#f6d55c]/50 bg-[#f6d55c]/15 px-2.5 py-0.5 font-mono text-[10px] tracking-wider text-[#f6d55c] uppercase">
                             <Zap className="size-3" />
                             {copy.badge}
                           </span>
@@ -370,128 +279,93 @@ function PricingSection() {
                       )}
                     </div>
 
-                    <div className="relative mt-5">
-                      <div className="flex items-baseline gap-1.5">
-                        <span
-                          className={cn(
-                            "font-heading text-4xl font-bold tracking-tight",
-                            copy.highlighted
-                              ? "text-studio-foreground"
-                              : "text-foreground",
+                    <div className="mt-4">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-heading text-4xl font-bold tracking-tight text-studio-foreground">
+                          {formatBdt(
+                            isFree ? 0 : (monthlyPrice?.amountBdt ?? 0),
                           )}
-                        >
-                          {formatBdt(isFree ? 0 : (monthlyPrice?.amountBdt ?? 0))}
                         </span>
-                        <span
-                          className={cn(
-                            "font-mono text-[11px] tracking-wider uppercase",
-                            copy.highlighted
-                              ? "text-studio-muted"
-                              : "text-muted-foreground",
-                          )}
-                        >
+                        <span className="font-mono text-xs tracking-wider text-studio-muted uppercase">
                           {isFree ? "starter credits" : monthlyPrice?.period}
                         </span>
                       </div>
-                      {!isFree && yearlyPrice && (
-                        <p
-                          className={cn(
-                            "mt-1 text-xs",
-                            copy.highlighted
-                              ? "text-studio-muted"
-                              : "text-muted-foreground",
-                          )}
-                        >
+
+                      {!isFree && yearlyPrice ? (
+                        <p className="mt-1 font-mono text-xs text-studio-muted">
                           or {formatBdt(yearlyPrice.amountBdt)}{" "}
                           {yearlyPrice.period}
                           {yearlySaving > 0 && (
-                            <span className="text-emerald-600 dark:text-emerald-400">
+                            <span className="text-emerald-400">
                               {" "}
                               · save {formatBdt(yearlySaving)}
                             </span>
                           )}
                         </p>
+                      ) : (
+                        <p className="mt-1 font-mono text-xs text-studio-muted">
+                          No credit card required
+                        </p>
                       )}
                     </div>
 
-                    <p
-                      className={cn(
-                        "relative mt-2 text-sm leading-6",
-                        copy.highlighted
-                          ? "text-studio-muted"
-                          : "text-muted-foreground",
-                      )}
-                    >
+                    <p className="mt-3 text-sm leading-5 text-studio-muted">
                       {copy.description}
                     </p>
 
                     <div
                       aria-hidden="true"
-                      className={cn(
-                        "relative my-5 h-px w-full",
-                        copy.highlighted
-                          ? "bg-studio-border/70"
-                          : "bg-border/70",
-                      )}
+                      className="my-4 border-t border-dashed border-studio-border"
                     />
 
-                    <ul className="relative flex-1 space-y-2.5 text-sm">
+                    <ul className="flex-1 space-y-2.5 text-sm">
                       {features.map((feature) => (
                         <li key={feature} className="flex items-start gap-2.5">
                           <span
                             className={cn(
                               "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full",
                               copy.highlighted
-                                ? "bg-trace/15 text-trace"
-                                : "bg-primary/10 text-primary",
+                                ? "bg-[#f6d55c]/20 text-[#f6d55c]"
+                                : "bg-emerald-400/15 text-emerald-400",
                             )}
                           >
                             <Check className="size-2.5" strokeWidth={3} />
                           </span>
-                          <span
-                            className={
-                              copy.highlighted
-                                ? "text-studio-muted"
-                                : "text-muted-foreground"
-                            }
-                          >
-                            {feature}
-                          </span>
+                          <span className="text-studio-muted">{feature}</span>
                         </li>
                       ))}
                     </ul>
 
                     {isFree ? (
-                      <Button
-                        variant={copy.highlighted ? "default" : "outline"}
-                        size="lg"
-                        className="relative mt-7 w-full"
-                        render={<Link href={freeHref} />}
+                      <Link
+                        href={freeHref}
+                        className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-studio-border bg-studio-surface px-5 text-sm font-medium text-studio-foreground transition-colors hover:border-studio-muted/60 hover:bg-accent"
                       >
                         <span>
                           {user ? "Go to Studio" : "Get Started Free"}
                         </span>
                         <ArrowRight className="size-4" />
-                      </Button>
+                      </Link>
                     ) : (
-                      <Button
-                        variant={
-                          isCurrentPlan
-                            ? "secondary"
-                            : copy.highlighted
-                              ? "default"
-                              : "outline"
-                        }
-                        size="lg"
-                        className="relative mt-7 w-full disabled:opacity-100"
+                      <button
+                        type="button"
                         disabled={isCurrentPlan || userLoading}
                         onClick={() => handlePaidPlanClick(plan)}
+                        className={cn(
+                          "mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-transform",
+                          isCurrentPlan
+                            ? "cursor-default border border-studio-border bg-studio-surface text-studio-muted"
+                            : "bg-[#f6d55c] text-[#1e1f22] shadow-[0_3px_0_0_rgba(0,0,0,0.35)] hover:-translate-y-0.5 hover:bg-[#f8dc72] active:translate-y-0 disabled:opacity-60",
+                        )}
                       >
+                        {!isCurrentPlan && (
+                          <span className="size-1.5 rounded-full bg-[#1e1f22]" />
+                        )}
                         <span>
-                          {isCurrentPlan ? "Current plan" : "Upgrade plan"}
+                          {isCurrentPlan ? "Current plan" : "Upgrade to Pro"}
                         </span>
                         {!isCurrentPlan && <ArrowRight className="size-4" />}
-                      </Button>
+                      </button>
                     )}
                   </article>
                 </AnimationWrapper>
@@ -499,25 +373,28 @@ function PricingSection() {
             })}
           </div>
         )}
+      </div>
 
-        <div className="mt-12 grid gap-6 rounded-2xl border border-border/70 bg-card/60 p-6 sm:p-8 lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-border/70 lg:p-0">
-          {CREDIT_STEPS.map((step, index) => (
-            <div
-              key={step.title}
-              className="flex items-start gap-4 lg:px-8 lg:py-8"
-            >
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-primary/15 bg-linear-to-br from-primary/15 via-primary/5 to-trace/10 text-primary">
-                <step.icon className="size-4.5" />
-              </div>
-              <div>
-                <p className="font-mono text-[10px] tracking-[0.2em] text-muted-foreground/60 uppercase">
-                  {String(index + 1).padStart(2, "0")}
+      {/* Bottom 3-step drafting strip */}
+      <div
+        className={cn(
+          "relative mx-auto hidden w-full lg:block",
+          CONTAINER_MAX_WIDTH,
+          CONTAINER_GUTTER,
+        )}
+      >
+        <div className="grid grid-cols-3 gap-6 border-t border-dashed border-studio-border/80 pt-3.5">
+          {BOTTOM_NOTES.map((item) => (
+            <div key={item.num} className="flex items-baseline gap-2.5">
+              <span className={cn("font-mono text-xs font-bold", item.accent)}>
+                {item.num}
+              </span>
+              <div className="min-w-0">
+                <p className="font-heading text-sm font-semibold text-studio-foreground">
+                  {item.title}
                 </p>
-                <h3 className="mt-1 font-heading text-sm font-semibold text-foreground">
-                  {step.title}
-                </h3>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  {step.description}
+                <p className="truncate font-mono text-[11px] text-studio-muted">
+                  {item.desc}
                 </p>
               </div>
             </div>
@@ -531,40 +408,5 @@ function PricingSection() {
         onClose={() => setSelectedPlan(null)}
       />
     </section>
-  );
-}
-
-export default function PlansPage() {
-  const { data: plans } = usePlans();
-  const freeCredits =
-    plans?.find((plan) => plan.code === "FREE")?.creditsLimit ?? 0;
-
-  return (
-    <>
-      <PageHero
-        badge="Plans & credits"
-        badgeIcon={CreditCard}
-        title={
-          <>
-            Simple pricing,{" "}
-            <TitleAccent id="plans-underline">studio-grade output.</TitleAccent>
-          </>
-        }
-        description="Preview and fine-tune every image for free in the Studio. Use credits or upgrade when you are ready to export production-ready artwork."
-        points={[
-          freeCredits > 0
-            ? `${freeCredits} free exports on sign-up`
-            : "Free starter credits on sign-up",
-          "No card required",
-          "SVG · PDF · EPS · DXF",
-        ]}
-      >
-        <CreditsCard credits={freeCredits} />
-      </PageHero>
-
-      <PricingSection />
-
-      <CtaSection />
-    </>
   );
 }

@@ -17,14 +17,15 @@ interface NavbarProps {
 
 export function Navbar({ className }: NavbarProps) {
   const navLinks = useNavLinks();
-  const isHome = usePathname() === "/";
+  const pathname = usePathname();
+  const isSeamless = pathname === "/" || pathname === "/plans";
   // const hasMounted = useHasMounted();
 
   return (
     <header
       className={cn(
         "top-0 z-40 w-full transition-colors",
-        isHome
+        isSeamless
           ? "absolute inset-x-0 border-b border-transparent bg-transparent"
           : "sticky border-b border-border/60 bg-background/80 backdrop-blur-md",
         className,

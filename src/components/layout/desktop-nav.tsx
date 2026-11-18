@@ -27,39 +27,42 @@ export function DesktopNav({ items, className }: DesktopNavProps) {
     <nav
       aria-label="Main navigation"
       className={cn(
-        "hidden md:flex items-center justify-center gap-7 lg:gap-8 flex-1 px-4",
+        "hidden md:flex items-center justify-center flex-1 px-4",
         className,
       )}
     >
-      {items.map((link) => {
-        const isActive = isNavLinkActive(pathname, link.href, hash);
+      <div className="inline-flex items-center gap-1 rounded-full border border-studio-border/80 bg-studio-panel/80 p-1 shadow-sm backdrop-blur-sm">
+        {items.map((link, idx) => {
+          const isActive = isNavLinkActive(pathname, link.href, hash);
 
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            aria-current={isActive ? "page" : undefined}
-            onClick={() =>
-              setHash(link.href.startsWith("/#") ? link.href.slice(1) : "")
-            }
-            className={cn(
-              "relative py-2 text-sm font-medium transition-colors cursor-pointer select-none whitespace-nowrap",
-              isActive
-                ? "text-foreground font-semibold"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <span>{link.name}</span>
-            {isActive && (
-              <motion.div
-                layoutId="navbar-active-indicator"
-                className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-foreground"
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-              />
-            )}
-          </Link>
-        );
-      })}
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={isActive ? "page" : undefined}
+              onClick={() =>
+                setHash(link.href.startsWith("/#") ? link.href.slice(1) : "")
+              }
+              className={cn(
+                "relative inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 font-mono text-xs transition-colors cursor-pointer select-none whitespace-nowrap",
+                isActive
+                  ? "text-primary-foreground font-semibold"
+                  : "text-studio-muted hover:text-studio-foreground",
+              )}
+            >
+              {isActive && (
+                <motion.span
+                  layoutId="navbar-active-indicator"
+                  className="absolute inset-0 rounded-full bg-primary shadow-[0_2px_0_0_rgba(0,0,0,0.25)]"
+                  transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                />
+              )}
+              <span className="relative z-10 opacity-60">0{idx + 1}</span>
+              <span className="relative z-10">{link.name}</span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }
