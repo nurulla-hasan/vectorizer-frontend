@@ -11,7 +11,6 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { PageWrapper } from "@/components/common/page-wrapper";
-import { Navbar } from "@/components/layout";
 import {
   ProfileBanner,
   ProfileForm,
@@ -45,7 +44,6 @@ export default function ProfilePage() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-studio-surface pb-16">
-      <Navbar />
 
       {/* Dot-grid notebook background */}
       <div
