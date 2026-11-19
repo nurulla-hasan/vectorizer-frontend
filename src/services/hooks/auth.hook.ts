@@ -4,12 +4,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AUTH_ME_QUERY_KEY,
   type AuthUser,
+  changePassword,
+  forgotPassword,
   getMe,
   loginUser,
   logoutUser,
   registerUser,
+  resendResetOtp,
   resendVerificationOtp,
+  resetPassword,
   verifyEmailOtp,
+  verifyResetOtp,
 } from "../api/auth.api";
 import { getErrorMessage } from "@/lib/error";
 import { errorToast, successToast } from "@/lib/toast";
@@ -90,5 +95,50 @@ export function useLogout() {
     onError: (error: unknown) => {
       errorToast("Logout failed", getErrorMessage(error, "Could not log out."));
     },
+  });
+}
+
+/**
+ * Change the signed-in user's password.
+ */
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: changePassword,
+  });
+}
+
+/**
+ * Request a password reset OTP email.
+ */
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: forgotPassword,
+  });
+}
+
+/**
+ * Resend the password reset OTP email.
+ */
+export function useResendResetOtp() {
+  return useMutation({
+    mutationFn: resendResetOtp,
+  });
+}
+
+/**
+ * Verify a password reset OTP code before resetting password.
+ */
+export function useVerifyResetOtp() {
+  return useMutation({
+    mutationFn: verifyResetOtp,
+  });
+}
+
+/**
+ * Reset password using email, verified OTP, and new password.
+ */
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: resetPassword,
   });
 }

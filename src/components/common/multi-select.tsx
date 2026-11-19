@@ -46,14 +46,22 @@ export function MultiSelect({
 
   // Maintain a persistent cache of option value -> label
   // so that when options change (due to pagination/search), previously chosen labels aren't lost
-  const labelMapRef = React.useRef<Map<string, string>>(new Map());
+  const [labelMap, setLabelMap] = React.useState<Map<string, string>>(
+    () => new Map(),
+  );
 
   React.useEffect(() => {
-    for (const opt of options) {
-      if (opt.value && opt.label) {
-        labelMapRef.current.set(opt.value, opt.label);
+    setLabelMap((prev) => {
+      let changed = false;
+      const next = new Map(prev);
+      for (const opt of options) {
+        if (opt.value && opt.label && next.get(opt.value) !== opt.label) {
+          next.set(opt.value, opt.label);
+          changed = true;
+        }
       }
-    }
+      return changed ? next : prev;
+    });
   }, [options]);
 
   const { sentinelRef } = useInfiniteScroll({
@@ -106,7 +114,7 @@ export function MultiSelect({
           ) : (
             selected.map((val) => {
               const opt = options.find((o) => o.value === val);
-              const displayLabel = opt?.label || labelMapRef.current.get(val) || val;
+              const displayLabel = opt?.label || labelMap.get(val) || val;
               return (
                 <ComboboxPrimitive.Chip
                   key={val}

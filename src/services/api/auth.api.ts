@@ -87,6 +87,60 @@ export async function logoutUser(): Promise<void> {
   });
 }
 
+export async function changePassword(payload: {
+  oldPassword: string;
+  newPassword: string;
+}): Promise<string> {
+  const res = await apiClient<ApiEnvelope<null>>("/auth/change-password", {
+    method: "POST",
+    body: payload,
+  });
+  return res.message;
+}
+
+export async function forgotPassword(payload: {
+  email: string;
+}): Promise<string> {
+  const res = await apiClient<ApiEnvelope<null>>("/auth/forgot-password", {
+    method: "POST",
+    body: payload,
+  });
+  return res.message;
+}
+
+export async function resendResetOtp(payload: {
+  email: string;
+}): Promise<string> {
+  const res = await apiClient<ApiEnvelope<null>>("/auth/resend-reset-otp", {
+    method: "POST",
+    body: payload,
+  });
+  return res.message;
+}
+
+export async function verifyResetOtp(payload: {
+  email: string;
+  otp: string;
+}): Promise<string> {
+  const res = await apiClient<ApiEnvelope<null>>("/auth/verify-reset-otp", {
+    method: "POST",
+    body: payload,
+  });
+  return res.message;
+}
+
+export async function resetPassword(payload: {
+  email: string;
+  otp: string;
+  password: string;
+}): Promise<string> {
+  const res = await apiClient<ApiEnvelope<null>>("/auth/reset-password", {
+    method: "POST",
+    body: payload,
+  });
+  return res.message;
+}
+
 export function getGoogleLoginUrl(): string {
   return `${API_BASE_URL}/auth/google`;
 }

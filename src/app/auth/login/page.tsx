@@ -7,7 +7,7 @@ import { useForm } from "@tanstack/react-form";
 import { LogIn } from "lucide-react";
 import { z } from "zod";
 import { GoogleIcon } from "@/components/common/brand-icons";
-import { PasswordInput } from "@/components/common/password-input";
+import { FormInput } from "@/components/common/form-input";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,9 +15,8 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { getSafeRedirectUrl } from "@/constant/routes";
 import { getErrorMessage } from "@/lib/error";
 import { errorToast, successToast } from "@/lib/toast";
 import { getGoogleLoginUrl, useLogin } from "@/services";
@@ -53,7 +52,8 @@ function LoginFormContent() {
       try {
         await login(value);
         successToast("Welcome back", "Signed in to TraceCraft AI.");
-        router.push("/studio");
+        const target = getSafeRedirectUrl(searchParams.get("callbackUrl"));
+        router.push(target);
       } catch (error: unknown) {
         errorToast("Sign in failed", getErrorMessage(error, "Invalid credentials"));
       }
@@ -100,46 +100,32 @@ function LoginFormContent() {
           }}
           className="space-y-4"
         >
-          <form.Field name="email">
-            {(field) => (
-              <div className="space-y-1.5">
-                <Label htmlFor="login-email-input">Email</Label>
-                <Input
-                  id="login-email-input"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors[0] && (
-                  <p className="text-xs text-destructive">
-                    {field.state.meta.errors[0].message}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
+          <FormInput
+            form={form}
+            name="email"
+            label="Email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+          />
 
-          <form.Field name="password">
-            {(field) => (
-              <div className="space-y-1.5">
-                <Label htmlFor="login-password-input">Password</Label>
-                <PasswordInput
-                  id="login-password-input"
-                  placeholder="••••••••"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors[0] && (
-                  <p className="text-xs text-destructive">
-                    {field.state.meta.errors[0].message}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
+          <FormInput
+            form={form}
+            name="password"
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+          />
+
+          <div className="flex justify-end">
+            <Link
+              href="/auth/forgot-password"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
 
           <form.Subscribe selector={(state) => state.isSubmitting}>
             {(isSubmitting) => (

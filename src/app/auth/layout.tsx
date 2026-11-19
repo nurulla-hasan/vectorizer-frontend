@@ -28,16 +28,14 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-dvh flex-1 flex-col lg:flex-row">
-      <aside className="vk-blueprint-grid relative hidden flex-col justify-between overflow-hidden p-10 lg:flex lg:w-1/2 xl:p-14">
-        <div
-          aria-hidden="true"
-          className="absolute -top-24 -right-24 size-96 rounded-full bg-primary/25 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute -bottom-32 -left-20 size-96 rounded-full bg-trace/10 blur-3xl"
-        />
+    <div className="relative flex min-h-dvh flex-1 flex-col overflow-hidden bg-studio-surface lg:flex-row">
+      {/* Dot-grid notebook background (same as Hero) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 vk-dot-grid opacity-40"
+      />
+
+      <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-dashed border-studio-border/80 p-10 lg:flex lg:w-1/2 xl:p-14">
 
         <Link href="/" className="relative z-10 inline-flex items-center gap-2.5">
           <span className="inline-flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -80,14 +78,6 @@ export default function AuthLayout({
       </aside>
 
       <section className="relative flex flex-1 flex-col">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
-        >
-          <div className="absolute -top-32 right-0 size-80 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute -bottom-24 left-0 size-80 rounded-full bg-accent/60 blur-3xl" />
-        </div>
-
         <header className="flex items-center justify-between gap-3 p-4 sm:p-6">
           <Logo size="md" className="lg:invisible" />
           <div className="flex items-center gap-2">

@@ -5,6 +5,9 @@ export type PaymentProvider = "BKASH" | "NAGAD" | "ROCKET";
 export type PaymentStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type BillingCycle = "MONTHLY" | "YEARLY";
 
+export type PlanId = "free" | "pro_monthly" | "pro_yearly";
+export type PaidPlanId = "pro_monthly" | "pro_yearly";
+
 export interface PlanPrice {
   billingCycle: BillingCycle;
   amountBdt: number;
@@ -12,12 +15,20 @@ export interface PlanPrice {
 }
 
 export interface PlanDefinition {
+  id: PlanId;
   code: UserPlan;
+  stepCode: string;
   label: string;
+  badge: string | null;
+  highlighted: boolean;
+  billingCycle: BillingCycle | null;
+  amountBdt: number;
+  period: string;
+  subtext: string;
   description: string;
   creditsLimit: number | null;
   unlimited: boolean;
-  prices: PlanPrice[];
+  features: string[];
 }
 
 export interface PaymentMethod {
@@ -74,8 +85,7 @@ export async function getPaymentMethods(): Promise<PaymentMethod[]> {
 }
 
 export async function createPaymentRequest(payload: {
-  plan: Exclude<UserPlan, "FREE">;
-  billingCycle: BillingCycle;
+  planId: PaidPlanId;
   provider: PaymentProvider;
   senderNumber: string;
   transactionId: string;

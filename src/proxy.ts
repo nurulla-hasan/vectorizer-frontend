@@ -1,7 +1,11 @@
 import type { JwtPayload } from "jsonwebtoken";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { AUTH_ROUTES, PRIVATE_ROUTES, USER_HOME } from "@/constant/routes";
+import {
+  AUTH_ROUTES,
+  PRIVATE_ROUTES,
+  getSafeRedirectUrl,
+} from "@/constant/routes";
 import { API_BASE_URL } from "@/lib/api-client";
 import { jwtUtils } from "@/lib/jwt";
 
@@ -86,9 +90,12 @@ export async function proxy(request: NextRequest) {
     loginUrl.searchParams.set("callbackUrl", pathname + search);
     response = NextResponse.redirect(loginUrl);
   }
-  // 2. Authenticated user trying to access auth pages -> redirect to studio
+  // 2. Authenticated user trying to access auth pages -> redirect to callbackUrl or home
   else if (isAuthRoute && isAuthenticated) {
-    response = NextResponse.redirect(new URL(USER_HOME, request.url));
+    const redirectTarget = getSafeRedirectUrl(
+      request.nextUrl.searchParams.get("callbackUrl"),
+    );
+    response = NextResponse.redirect(new URL(redirectTarget, request.url));
   }
 
   if (!response) {

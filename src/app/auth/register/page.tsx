@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { USER_HOME } from "@/constant/routes";
 import { getErrorMessage } from "@/lib/error";
 import { errorToast, successToast } from "@/lib/toast";
 import {
@@ -84,7 +85,7 @@ export default function RegisterPage() {
     try {
       await verifyOtp({ email: pendingEmail, otp });
       successToast("Email verified", "Welcome to TraceCraft AI — 5 credits added.");
-      router.push("/studio");
+      router.push(USER_HOME);
     } catch (error: unknown) {
       errorToast(
         "Verification failed",

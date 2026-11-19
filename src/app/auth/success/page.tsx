@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";
+import { USER_HOME } from "@/constant/routes";
 import { successToast } from "@/lib/toast";
 import { AUTH_ME_QUERY_KEY } from "@/services";
 
@@ -18,7 +19,7 @@ export default function AuthSuccessPage() {
       await queryClient.invalidateQueries({ queryKey: AUTH_ME_QUERY_KEY });
       if (!active) return;
       successToast("Signed in", "Google account connected.");
-      router.replace("/studio");
+      router.replace(USER_HOME);
     })();
 
     return () => {
@@ -37,7 +38,7 @@ export default function AuthSuccessPage() {
             Signing you in
           </h1>
           <p className="text-sm text-muted-foreground">
-            Completing Google sign-in, redirecting to your studio…
+            Completing Google sign-in, redirecting you…
           </p>
         </div>
       </CardContent>
