@@ -46,23 +46,29 @@ export function MultiSelect({
 
   // Maintain a persistent cache of option value -> label
   // so that when options change (due to pagination/search), previously chosen labels aren't lost
-  const [labelMap, setLabelMap] = React.useState<Map<string, string>>(
-    () => new Map(),
-  );
+  const [prevOptions, setPrevOptions] = React.useState(options);
+  const [labelMap, setLabelMap] = React.useState<Map<string, string>>(() => {
+    const map = new Map<string, string>();
+    for (const opt of options) {
+      if (opt.value && opt.label) map.set(opt.value, opt.label);
+    }
+    return map;
+  });
 
-  React.useEffect(() => {
-    setLabelMap((prev) => {
-      let changed = false;
-      const next = new Map(prev);
-      for (const opt of options) {
-        if (opt.value && opt.label && next.get(opt.value) !== opt.label) {
-          next.set(opt.value, opt.label);
-          changed = true;
-        }
+  if (prevOptions !== options) {
+    setPrevOptions(options);
+    let changed = false;
+    const next = new Map(labelMap);
+    for (const opt of options) {
+      if (opt.value && opt.label && next.get(opt.value) !== opt.label) {
+        next.set(opt.value, opt.label);
+        changed = true;
       }
-      return changed ? next : prev;
-    });
-  }, [options]);
+    }
+    if (changed) {
+      setLabelMap(next);
+    }
+  }
 
   const { sentinelRef } = useInfiniteScroll({
 

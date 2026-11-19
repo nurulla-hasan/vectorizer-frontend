@@ -9,6 +9,7 @@ import {
   LogOut,
   PenLine,
   ReceiptText,
+  User,
 } from "lucide-react";
 import { ChangePasswordModal } from "@/components/auth/change-password-modal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -81,6 +82,10 @@ export function NavbarUserMenu({ className }: { className?: string }) {
                 <CreditsQuotaSummary />
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <DropdownMenuItem render={<Link href="/profile" />}>
+                <User className="size-4 mr-2" />
+                <span>My Profile</span>
+              </DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/studio" />}>
                 <PenLine className="size-4 mr-2" />
                 <span>Vector Studio</span>

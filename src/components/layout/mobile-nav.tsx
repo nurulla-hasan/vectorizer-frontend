@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   PenLine,
+  User,
 } from "lucide-react";
 import { Logo } from "@/components/common/logo";
 import { ThemeToggle } from "@/components/common/theme-toggle";
@@ -147,6 +148,14 @@ export function MobileNav({ items, className }: MobileNavProps) {
                 </Link>
 
                 <div className="flex flex-col gap-0.5">
+                  <Link
+                    href="/profile"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                  >
+                    <User className="size-4 shrink-0" />
+                    <span>My Profile</span>
+                  </Link>
                   <Link
                     href="/studio"
                     onClick={() => setOpen(false)}

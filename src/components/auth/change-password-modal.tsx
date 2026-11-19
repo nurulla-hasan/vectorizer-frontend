@@ -27,15 +27,35 @@ const changePasswordSchema = z
     path: ["confirmPassword"],
   });
 
-interface ChangePasswordModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+export interface ChangePasswordModalProps {
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onClose?: () => void;
 }
 
 export function ChangePasswordModal({
-  open,
-  onOpenChange,
+  trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  onClose,
 }: ChangePasswordModalProps) {
+  const [internalOpen, setInternalOpen] = React.useState(false);
+
+  const isControlled = controlledOpen !== undefined;
+  const isOpen = isControlled ? controlledOpen : internalOpen;
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(nextOpen);
+    }
+    controlledOnOpenChange?.(nextOpen);
+    if (!nextOpen) {
+      form.reset();
+      onClose?.();
+    }
+  };
+
   const { mutateAsync: updatePassword } = useChangePassword();
 
   const form = useForm({
@@ -58,7 +78,7 @@ export function ChangePasswordModal({
           message || "Your password has been updated.",
         );
         form.reset();
-        onOpenChange(false);
+        handleOpenChange(false);
       } catch (error: unknown) {
         errorToast(
           "Password update failed",
@@ -68,16 +88,11 @@ export function ChangePasswordModal({
     },
   });
 
-  React.useEffect(() => {
-    if (!open) {
-      form.reset();
-    }
-  }, [open, form]);
-
   return (
     <Modal
-      open={open}
-      onOpenChange={onOpenChange}
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      actionTrigger={trigger}
       size="sm"
       title="Change password"
       description="Enter your current password and choose a new one."
@@ -122,7 +137,7 @@ export function ChangePasswordModal({
             type="button"
             variant="outline"
             size="default"
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleOpenChange(false)}
           >
             Cancel
           </Button>

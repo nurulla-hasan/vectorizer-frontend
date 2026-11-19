@@ -12,6 +12,12 @@ export interface AuthUser {
   creditsLimit?: number | null;
   unlimited?: boolean;
   imageUrl?: string;
+  phone?: string;
+  authProvider?: "CREDENTIAL" | "GOOGLE";
+  status?: "ACTIVE" | "BLOCKED";
+  hasPassword?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   emailVerified: boolean;
 }
 
@@ -143,4 +149,18 @@ export async function resetPassword(payload: {
 
 export function getGoogleLoginUrl(): string {
   return `${API_BASE_URL}/auth/google`;
+}
+
+export interface UpdateMePayload {
+  name?: string;
+  phone?: string;
+  imageUrl?: string;
+}
+
+export async function updateMe(payload: UpdateMePayload): Promise<AuthUser> {
+  const res = await apiClient<ApiEnvelope<{ user: AuthUser }>>("/auth/me", {
+    method: "PATCH",
+    body: payload,
+  });
+  return res.data.user;
 }

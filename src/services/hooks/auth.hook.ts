@@ -13,6 +13,7 @@ import {
   resendResetOtp,
   resendVerificationOtp,
   resetPassword,
+  updateMe,
   verifyEmailOtp,
   verifyResetOtp,
 } from "../api/auth.api";
@@ -140,5 +141,27 @@ export function useVerifyResetOtp() {
 export function useResetPassword() {
   return useMutation({
     mutationFn: resetPassword,
+  });
+}
+
+/**
+ * Update the signed-in user's profile details.
+ */
+export function useUpdateMe() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateMe,
+    onSuccess: async (updatedUser) => {
+      queryClient.setQueryData(AUTH_ME_QUERY_KEY, updatedUser);
+      await queryClient.invalidateQueries({ queryKey: AUTH_ME_QUERY_KEY });
+      successToast("Profile updated", "Your profile details have been saved.");
+    },
+    onError: (error: unknown) => {
+      errorToast(
+        "Update failed",
+        getErrorMessage(error, "Failed to update profile details."),
+      );
+    },
   });
 }
